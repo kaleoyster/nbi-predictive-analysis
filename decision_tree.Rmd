@@ -1,0 +1,78 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+loading libraries..
+```{r}
+library(lattice)
+library(ISLR)
+library(MASS)
+library(ggplot2)
+library(caret)
+library(tidyverse)
+```
+
+
+
+```{r}
+nbi <- read.csv('nbi_timerseries.csv')
+head(nbi)
+```
+```{r}
+nbi$Maintainer <- as.factor((nbi$Maintainer))
+nbi$State.Code <- as.factor((nbi$State.Code))
+nbi$Owner <- as.factor((nbi$Owner))
+nbi$Material <- as.factor((nbi$Material))
+nbi$Structure.Type <- as.factor((nbi$Structure.Type))
+head(nbi)
+```
+
+
+```{r}
+index = createDataPartition(y=nbi$Category, p=0.7, list=FALSE)
+
+train.set = nbi[index,]
+test.set = nbi[-index,]
+
+dim(train.set)
+```
+```{r}
+dim(test.set)
+```
+
+
+```{r}
+nbi.tree = train(Category ~ State.Code + Age_L + Material + ADT.Category +  ADTT.Category + Maintainer + Structure.Type,
+                 data = train.set,
+                 method = "rpart",
+                 trControl = trainControl(method = "cv"))
+```
+
+```{r}
+nbi.tree
+```
+
+```{r}
+suppressMessages(library(rattle))
+
+fancyRpartPlot(nbi.tree$finalModel)
+```
+
+```{r}
+nbi.pred = predict(nbi.tree, newdata = test.set)
+```
+```{r}
+table(nbi.pred, test.set$Category)
+error.rate = round(mean(nbi.pred != test.set$Category), 2)
+error.rate
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
