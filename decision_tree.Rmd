@@ -1,6 +1,7 @@
 ---
 title: "R Notebook"
 output: html_notebook
+Author: "Akshay Kale"
 ---
 
 
@@ -9,9 +10,9 @@ loading libraries..
 library(lattice)
 library(ISLR)
 library(MASS)
-library(ggplot2)
 library(caret)
 library(tidyverse)
+library(plyr)
 ```
 
 
@@ -26,6 +27,10 @@ nbi$State.Code <- as.factor((nbi$State.Code))
 nbi$Owner <- as.factor((nbi$Owner))
 nbi$Material <- as.factor((nbi$Material))
 nbi$Structure.Type <- as.factor((nbi$Structure.Type))
+
+nbi$Material = mapvalues(nbi$Material, 
+                from = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "-1", "0"),
+                 to = c("Concrete", "Concrete Continuous", "Steel", "Steel Continuous", "Prestressed Concrete", "Prestressed Concrete Continuous", "Wood or Timber", "Masonry", "Aluminium", "NA", "Other"))
 head(nbi)
 ```
 
@@ -42,16 +47,37 @@ dim(train.set)
 dim(test.set)
 ```
 
+# Method Section:
+
+## Interest:
+    Primary goal is to understand
+    1. Validating the paramenters from the previous research and their importance
+    2. We can probably using the
+    
+    
 
 ```{r}
+grid <- expand.grid(cp=seq(0,1,0.01))
+
 nbi.tree = train(Category ~ State.Code + Age_L + Material + ADT.Category +  ADTT.Category + Maintainer + Structure.Type,
                  data = train.set,
                  method = "rpart",
-                 trControl = trainControl(method = "cv"))
+                 trControl = trainControl(method = "cv"),
+                 tuneLength = 10,
+                 tuneGrid = grid)
+
+
+
 ```
 
 ```{r}
 nbi.tree
+```
+
+
+```{r}
+# Variable Importance
+varImp(nbi.tree)
 ```
 
 ```{r}
@@ -69,10 +95,15 @@ error.rate = round(mean(nbi.pred != test.set$Category), 2)
 error.rate
 ```
 
+```{r}
+confusionMatrix(nbi.pred, test.set$Category)
+```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+```{r}
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+```
+
+What do you
+  
 
