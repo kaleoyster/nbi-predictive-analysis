@@ -3,9 +3,9 @@ title: "R Notebook"
 output: html_notebook
 Author: "Akshay Kale"
 ---
+# Introduction
+The 2017 Infrastructure report card gives a C+ rating to Bridges in the US. Out of several recommendations to improve the health of the bridges, ASCE suggests that bridges owners should consider the cost across the bridge’s entire lifecycle to make smart design decisions and prioritize maintenances and rehabilitation. Bridge engineers and stakeholder require the understanding of the role of influential factors in the deterioration of the bridges over a bridge’s lifecycle to make smart decisions.  However, previous research didn't account the performance over their entire life-cycle of the bridges to predict the future maintenances and rehabilitation of the bridges. In this paper, we will examine the role of bridge attributes, environmental, and demographical factors in the deterioration of the bridges.
 
-
-loading libraries..
 ```{r}
 library(lattice)
 library(ISLR)
@@ -14,6 +14,30 @@ library(caret)
 library(tidyverse)
 library(plyr)
 ```
+
+# Number of features to take into consideration:
+  
+  1. Structure Number
+  2. State Name
+  3. Age
+  4. Average Daily Traffic
+  5. Average Daily Truck Traffic
+  6. Superstructure
+  7. Average Daily Precipitation
+  8. Superstructure (Condition Rating) - Collinearity (Not completely independent)
+  9. Structure Type
+  10. Length of maximum span flat
+  11. Baseline Difference Score
+  12. Number of Snowfall days
+  13. Number of freeze Thaw
+  14. Structure Type
+  15. Owner or Maintainer
+  16. Length of Maximum Span Flat
+  17. Baseline Difference Score 
+  18. Number of Invtervention / Intervention
+  
+  
+  
 
 
 
@@ -59,15 +83,12 @@ dim(test.set)
 ```{r}
 grid <- expand.grid(cp=seq(0,1,0.01))
 
-nbi.tree = train(Category ~ State.Code + Age_L + Material + ADT.Category +  ADTT.Category + Maintainer + Structure.Type,
+nbi.tree = train(Category ~ State.Code + Age_L + Material + ADT.Category + Baseline.Difference.Score + ADTT.Category + Maintainer + Avg..Daily.Precipitation + Structure.Type,
                  data = train.set,
                  method = "rpart",
                  trControl = trainControl(method = "cv"),
                  tuneLength = 10,
                  tuneGrid = grid)
-
-
-
 ```
 
 ```{r}
@@ -78,11 +99,11 @@ nbi.tree
 ```{r}
 # Variable Importance
 varImp(nbi.tree)
+
 ```
 
 ```{r}
 suppressMessages(library(rattle))
-
 fancyRpartPlot(nbi.tree$finalModel)
 ```
 
@@ -104,6 +125,4 @@ confusionMatrix(nbi.pred, test.set$Category)
 
 ```
 
-What do you
-  
 

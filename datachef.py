@@ -1,6 +1,6 @@
 """ 
 Description:
-    Something fun is about to happen
+    This script will contain functions to create a timeseries format of the NBI data. This script will also, intergrate other datasources like precipitation dataset from CDC, population dataset, and weather data (number of snowfall and number of freeze thaw) from infobridge.com
 
 Author: Akshay S. Kale
 Python Version: 3.6.4
@@ -10,7 +10,7 @@ Python Version: 3.6.4
 import pandas as pd
 import numpy as numpy
 
-class DataPrep():
+class DataChef():
     """
      Description: The class contain functions to clean, process, and tranform the dataset.
 
