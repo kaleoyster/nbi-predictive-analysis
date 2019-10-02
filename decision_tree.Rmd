@@ -4,7 +4,8 @@ output: html_notebook
 Author: "Akshay Kale"
 ---
 # Introduction
-The 2017 Infrastructure report card gives a C+ rating to Bridges in the US. Out of several recommendations to improve the health of the bridges, ASCE suggests that bridges owners should consider the cost across the bridge’s entire lifecycle to make smart design decisions and prioritize maintenances and rehabilitation. Bridge engineers and stakeholder require the understanding of the role of influential factors in the deterioration of the bridges over a bridge’s lifecycle to make smart decisions.  However, previous research didn't account the performance over their entire life-cycle of the bridges to predict the future maintenances and rehabilitation of the bridges. In this paper, we will examine the role of bridge attributes, environmental, and demographical factors in the deterioration of the bridges.
+  The 2017 Infrastructure report card gives a C+ rating to Bridges in the US. Out of several recommendations to improve the health of the bridges, ASCE suggests that bridges owners should consider the cost across the bridge’s entire lifecycle to make smart design decisions and prioritize maintenances and rehabilitation. Bridge engineers and stakeholder require the understanding of the role of influential factors in the deterioration of the bridges over a bridge’s lifecycle to make smart decisions.  However, previous research didn't account the performance over their entire life-cycle of the bridges to predict the future maintenances and rehabilitation of the bridges. In this paper, we will examine the role of bridge attributes, environmental, and demographical factors in the deterioration of the bridges.
+
 
 ```{r}
 library(lattice)
@@ -27,19 +28,78 @@ library(plyr)
   8. Superstructure (Condition Rating) - Collinearity (Not completely independent)
   9. Structure Type
   10. Length of maximum span flat
-  11. Baseline Difference Score
-  12. Number of Snowfall days
-  13. Number of freeze Thaw
-  14. Structure Type
-  15. Owner or Maintainer
-  16. Length of Maximum Span Flat
-  17. Baseline Difference Score 
-  18. Number of Invtervention / Intervention
+  11. Number of Snowfall days
+  12. Number of freeze Thaw
+  13. Structure Type
+  14. Owner or Maintainer
+  15. Length of Maximum Span Flat
+  16. Baseline Difference Score 
+  17. Number of Invtervention / Intervention
+  18. Population
+  19. Route Signing Prefix 
+  20. Designated Level of Service
+  21. Inventory Route, Minimum Vertical Clearance
+  22. Base Highway Network
+  23. Bypass, Detour Length
+  24. Toll
+  25. Functional Classification of Inventory Route  
+  26. Year_L
+  27. Lanes On and Under the Structure 
+  28. Traffic Safety Features  
+  29. Structure Flared
+  30. Skew
+  31. Historical Significance
   
   
+  The overall goal is to have all the variables in the time series format, 
+
   
+  
+  When we talked about the k-nearest-neighbor (KNN) algorithm, we discussed that when the number of features p is large, there tends to be a deterioration in the performance of KNN (and, in fact, other local approaches) that perform prediction using only observations that are near the test observation for which a prediction must be made. This phenomenon is known as the curse of dimensionality, and it ties into the fact that parametric approaches often perform poorly when p is large. We will now investigate this curse.
+
+a.	Suppose that we have a set of observations, 1 to n, each with measurements on p = 1 feature, X (i.e., we have one predictor and one target variable). We assume that X is uniformly (evenly) distributed on [0, 1]. Associated with each observation is a response value Y. Suppose that we wish to predict a test observation’s response using only observations that are within 10% of the range of X closest to that test observation. For instance, in order to predict the response for a test observation with X = 0.6, we will use observations in the range [0.55, 0.65]. On average, what fraction of the available observations will we use to make the prediction?
 
 
+
+
+
+
+
+
+
+b.	Now suppose that we have a set of observations, each with measurements on p = 2 features, X1 and X2. We assume that (X1,X2) are uniformly distributed on [0, 1] × [0, 1]. We wish to predict a test observation’s response using only observations that are within 10% of the range of X1 and within 10% of the range of X2 closest to that test observation. For instance, in order to predict the response for a test observation with X1 = 0.6 and X2 = 0.35, we will use observations in the range [0.55, 0.65] for X1 and in the range [0.3, 0.4] for X2. On average, what fraction of the available observations will we use to make the prediction.
+
+
+
+
+
+c.	Generalize the previous argument by studying p predictors, where p is large (e.g., p = 100). Which fraction of overall observations will be used for prediction?
+
+
+
+
+
+
+d.	Given the previous results, discuss the issue(s) that you see when p gets large. For example, look at the fraction of observations that is used in the predictions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 
 ```{r}
 nbi <- read.csv('nbi_timerseries.csv')
@@ -83,7 +143,7 @@ dim(test.set)
 ```{r}
 grid <- expand.grid(cp=seq(0,1,0.01))
 
-nbi.tree = train(Category ~ State.Code + Age_L + Material + ADT.Category + Baseline.Difference.Score + ADTT.Category + Maintainer + Avg..Daily.Precipitation + Structure.Type,
+nbi.tree = train(Category ~ State.Code + Age_L + Material + ADT.Category + ADTT.Category + Maintainer + Avg..Daily.Precipitation + Structure.Type,
                  data = train.set,
                  method = "rpart",
                  trControl = trainControl(method = "cv"),
