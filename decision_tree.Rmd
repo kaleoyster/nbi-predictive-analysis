@@ -2,9 +2,11 @@
 title: "R Notebook"
 output: html_notebook
 Author: "Akshay Kale"
+editor_options: 
+  chunk_output_type: console
 ---
 # Introduction
-  The 2017 Infrastructure report card gives a C+ rating to Bridges in the US. Out of several recommendations to improve the health of the bridges, ASCE suggests that bridges owners should consider the cost across the bridge’s entire lifecycle to make smart design decisions and prioritize maintenances and rehabilitation. Bridge engineers and stakeholder require the understanding of the role of influential factors in the deterioration of the bridges over a bridge’s lifecycle to make smart decisions.  However, previous research didn't account the performance over their entire life-cycle of the bridges to predict the future maintenances and rehabilitation of the bridges. In this paper, we will examine the role of bridge attributes, environmental, and demographical factors in the deterioration of the bridges.
+  The 2017 Infrastructure report card gives a C+ rating to Bridges in the US. Out of several recommendations to improve the health of the bridges, ASCE suggests that bridges owners should consider the cost across the bridge’s entire lifecycle to make smart design decisions and prioritize maintenances and rehabilitation. Several researchers provided method to evaluate the performance of the bridges over their period of time. The next step in addressing this problem is to identify the influential factors in the performance of the bridges and the maintenance of the bridges. However, there is a lack of general understanding what keeps bridges in better performning state and the effect of maintainace on the performance of the bridges.Why do we think there is no general understanding of the performance and the and maintenance? because, previous research didn't account the performance over their entire life-cycle of the bridges to predict the future maintenances and rehabilitation of the bridges. In this research study, we studied 600,000 bridges to understand and identify the most influential factors in performance of the bridge and the role of the maintenance in the performance of the bridge. We will examine the role of bridge attributes, environmental, and demographical factors in the performance and accounting the repair and rehabilitation of the bridges.
 
 
 ```{r}
@@ -13,29 +15,41 @@ library(ISLR)
 library(MASS)
 library(caret)
 library(tidyverse)
-library(plyr)
+library(dplyr)
 ```
 
+# Introduction
+# Previous Research
+# Data
+# Method
+     
+# Steps:
+
+  1. Transform data and create a dataset in python
+  2. Create a random forest model to select most important features for 1) Predicting performance, 2) Predicting intervention
+  3. Comparision of the two models
+  
+  
 # Number of features to take into consideration:
   
-  1. Structure Number
-  2. State Name
-  3. Age
-  4. Average Daily Traffic
-  5. Average Daily Truck Traffic
-  6. Superstructure
-  7. Average Daily Precipitation
-  8. Superstructure (Condition Rating) - Collinearity (Not completely independent)
-  9. Structure Type
-  10. Length of maximum span flat
-  11. Number of Snowfall days
-  12. Number of freeze Thaw
-  13. Structure Type
-  14. Owner or Maintainer
-  15. Length of Maximum Span Flat
-  16. Baseline Difference Score 
-  17. Number of Invtervention / Intervention
-  18. Population
+  1. Structure Number (X)
+  2. State Name (X)
+  3. Age (X)
+  4. Average Daily Traffic (X)
+  5. Average Daily Truck Traffic (X)
+  6. Superstructure (X)
+  7. Average Daily Precipitation (X)
+  8. Superstructure (Condition Rating) - Collinearity (Not completely independent) (X)
+  9. Structure Type (X)
+  10. Length of maximum span flat (X)
+  11. Number of Snowfall days (X)
+  12. Number of freeze Thaw (X)
+  13. Structure Type (X)
+  14. Owner or Maintainer (X)
+  15. Length of Maximum Span Flat (X)
+  16. Baseline Difference Score  (X)
+  17. Number of Invtervention / Intervention (X)
+  18. Population (X)
   19. Route Signing Prefix 
   20. Designated Level of Service
   21. Inventory Route, Minimum Vertical Clearance
@@ -43,146 +57,189 @@ library(plyr)
   23. Bypass, Detour Length
   24. Toll
   25. Functional Classification of Inventory Route  
-  26. Year_L
+  26. Year_L (X)
   27. Lanes On and Under the Structure 
   28. Traffic Safety Features  
   29. Structure Flared
   30. Skew
   31. Historical Significance
   
-  
-  The overall goal is to have all the variables in the time series format, 
-
-  
-  
-  When we talked about the k-nearest-neighbor (KNN) algorithm, we discussed that when the number of features p is large, there tends to be a deterioration in the performance of KNN (and, in fact, other local approaches) that perform prediction using only observations that are near the test observation for which a prediction must be made. This phenomenon is known as the curse of dimensionality, and it ties into the fact that parametric approaches often perform poorly when p is large. We will now investigate this curse.
-
-a.	Suppose that we have a set of observations, 1 to n, each with measurements on p = 1 feature, X (i.e., we have one predictor and one target variable). We assume that X is uniformly (evenly) distributed on [0, 1]. Associated with each observation is a response value Y. Suppose that we wish to predict a test observation’s response using only observations that are within 10% of the range of X closest to that test observation. For instance, in order to predict the response for a test observation with X = 0.6, we will use observations in the range [0.55, 0.65]. On average, what fraction of the available observations will we use to make the prediction?
 
 
 
 
 
-
-
-
-
-b.	Now suppose that we have a set of observations, each with measurements on p = 2 features, X1 and X2. We assume that (X1,X2) are uniformly distributed on [0, 1] × [0, 1]. We wish to predict a test observation’s response using only observations that are within 10% of the range of X1 and within 10% of the range of X2 closest to that test observation. For instance, in order to predict the response for a test observation with X1 = 0.6 and X2 = 0.35, we will use observations in the range [0.55, 0.65] for X1 and in the range [0.3, 0.4] for X2. On average, what fraction of the available observations will we use to make the prediction.
-
-
-
-
-
-c.	Generalize the previous argument by studying p predictors, where p is large (e.g., p = 100). Which fraction of overall observations will be used for prediction?
-
-
-
-
-
-
-d.	Given the previous results, discuss the issue(s) that you see when p gets large. For example, look at the fraction of observations that is used in the predictions.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
 
 ```{r}
-nbi <- read.csv('nbi_timerseries.csv')
-head(nbi)
-```
-```{r}
+
+# Reading the dataset
+nbi <- read.csv('apple.csv')
+names(nbi)
+
+## Data processing
+# Converting into factors
+library(plyr)
 nbi$Maintainer <- as.factor((nbi$Maintainer))
 nbi$State.Code <- as.factor((nbi$State.Code))
 nbi$Owner <- as.factor((nbi$Owner))
 nbi$Material <- as.factor((nbi$Material))
 nbi$Structure.Type <- as.factor((nbi$Structure.Type))
+#nbi$Reconstruction_binary <- as.factor((nbi$Reconstruction_binary))
+#nbi$Rehabilitation_binary <- as.factor((nbi$Rehabilitation_binary))
+#nbi$Repair_binary <- as.factor(nbi$Repair_binary)
 
-nbi$Material = mapvalues(nbi$Material, 
+# Mapping names to the codes
+nbi$Material <- mapvalues(nbi$Material, 
                 from = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "-1", "0"),
-                 to = c("Concrete", "Concrete Continuous", "Steel", "Steel Continuous", "Prestressed Concrete", "Prestressed Concrete Continuous", "Wood or Timber", "Masonry", "Aluminium", "NA", "Other"))
-head(nbi)
+                 to = c("Concrete", "Concrete Continuous", "Steel", "Steel Continuous", "Prestressed Concrete","Prestressed  Concrete Continuous", "Wood or Timber", "Masonry", "Aluminium", "NA", "Other"))
+
+nbi$Rehabilitation_binary <- mapvalues(nbi$Rehabilitation_binary, 
+                             from = c("1","0"),
+                          to = c("Yes", "No"))
+
+
+nbi$Reconstruction_binary <- mapvalues(nbi$Reconstruction_binary, 
+                             from = c("1","0"),
+                             to = c("Yes", "No"))
+
+
+nbi$Repair_binary <- mapvalues(nbi$Repair_binary, 
+                             from = c("1","0"),
+                             to = c("Yes", "No"))
+
 ```
 
 
+#### Training
 ```{r}
-index = createDataPartition(y=nbi$Category, p=0.7, list=FALSE)
+library(doParallel)
+num_cores <- detectCores() #note: you can specify a smaller number if you want
+cl <- makePSOCKcluster(num_cores)
+registerDoParallel(cl)
 
+
+# Creating training and testing set
+target_variable <- 'Reconstruction_binary'
+
+index = createDataPartition(y=nbi[[target_variable]], p=0.7, list=FALSE)
 train.set = nbi[index,]
 test.set = nbi[-index,]
 
-dim(train.set)
-```
-```{r}
-dim(test.set)
-```
 
-# Method Section:
+# Tuning grid parameter
+grid <- expand.grid(cp=seq(0.0,.01,0.001))
+model <- Reconstruction_binary ~  Age_L + Material + ADT.Category + ADTT.Category + Maintainer + Avg..Daily.Precipitation + Structure.Type
 
-## Interest:
-    Primary goal is to understand
-    1. Validating the paramenters from the previous research and their importance
-    2. We can probably using the
-    
-    
 
-```{r}
-grid <- expand.grid(cp=seq(0,1,0.01))
-
-nbi.tree = train(Category ~ State.Code + Age_L + Material + ADT.Category + ADTT.Category + Maintainer + Avg..Daily.Precipitation + Structure.Type,
+# Training
+nbi.tree = train(model,
                  data = train.set,
-                 method = "rpart",
-                 trControl = trainControl(method = "cv"),
-                 tuneLength = 10,
-                 tuneGrid = grid)
-```
+                 method = "rpart2",
+                 trControl = trainControl(method = "repeatedcv", search = 'random', repeats = 5,    summaryFunction = twoClassSummary, classProbs = T, savePredictions = T),
+                 tuneLength = 20,
+                 metric='ROC')
 
-```{r}
-nbi.tree
-```
+suppressMessages(library(rattle))
+library(rpart)
+library(rpart.plot)
 
-
-```{r}
 # Variable Importance
 varImp(nbi.tree)
 
-```
+#View model
+nbi.tree
 
-```{r}
-suppressMessages(library(rattle))
-fancyRpartPlot(nbi.tree$finalModel)
-```
+# Plot Accuracy vs Complexity Paramenter
+plot(nbi.tree)
 
-```{r}
+# Plot tree
+#fancyRpartPlot(nbi.tree$finalModel)
+
+# Prediction on the test set
 nbi.pred = predict(nbi.tree, newdata = test.set)
-```
-```{r}
+
+# 
 table(nbi.pred, test.set$Category)
-error.rate = round(mean(nbi.pred != test.set$Category), 2)
+error.rate = round(mean(nbi.pred != test.set[[target_variable]]), 2)
 error.rate
+
+# Confusion Matrix
+confusionMatrix(nbi.pred, test.set[[target_variable]])
 ```
+
+
+
+# Plotting Tree
+```{r}
+library(rpart.plot)
+rpart.plot(nbi.tree$finalModel)
+```
+
+
+
+
+#### Model for predicting the baseline difference score
+```{r}
+library(doParallel)
+num_cores <- detectCores() #note: you can specify a smaller number if you want
+cl <- makePSOCKcluster(num_cores)
+registerDoParallel(cl)
+
+
+# Creating training and testing set
+target_variable <- 'Category'
+
+index = createDataPartition(y=nbi[[target_variable]], p=0.7, list=FALSE)
+train.set = nbi[index,]
+test.set = nbi[-index,]
+
+
+# Tuning grid parameter
+grid <- expand.grid(cp=seq(0.0,.01,0.001))
+model <- Category ~ State.Code + Age_L + Material + ADT.Category + ADTT.Category + Maintainer + Avg..Daily.Precipitation + Structure.Type
+
+
+# Training
+nbi.tree = train(model,
+                 data = train.set,
+                 method = "rpart",
+                 trControl = trainControl(method = "repeatedcv", search = 'random', repeats = 5),
+                 tuneLength = 10, metric = "ROC")
+
+suppressMessages(library(rattle))
+library(rpart)
+library(rpart.plot)
+
+# Variable Importance
+varImp(nbi.tree)
+
+# View model
+nbi.tree
+
+# Plot Accuracy vs Complexity Paramenter
+plot(nbi.tree)
+
+# Plot tree
+#fancyRpartPlot(nbi.tree$finalModel)
+
+# Prediction on the test set
+nbi.pred = predict(nbi.tree, newdata = test.set)
+
+# 
+table(nbi.pred, test.set$Category)
+error.rate = round(mean(nbi.pred != test.set[[target_variable]]), 2)
+error.rate
+
+# Confusion Matrix
+confusionMatrix(nbi.pred, test.set[[target_variable]])
+```
+# include ROC, 
+# undersampling
+# threshold value 
+# tunelength 
+
 
 ```{r}
-confusionMatrix(nbi.pred, test.set$Category)
+rpart.rules(nbi.tree$finalModel)
 ```
-
-```{r}
-
-
-```
-
 
