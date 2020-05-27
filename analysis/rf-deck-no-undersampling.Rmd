@@ -1,0 +1,152 @@
+---
+title: "R Notebook"
+author: Akshay Kale
+output: html_notebook
+description: Random foreset model to model deck rating without undersampling
+---
+
+# Librarires
+```{r}
+library(lattice)
+library(ISLR)
+library(MASS)
+library(caret)
+library(tidyverse)
+library(rpart)
+library(plyr); library(dplyr)
+library(caret)
+library(rattle)                 # Fancy tree plot
+library(rpart.plot) 
+library(dplyr)
+library(parallel)
+
+library(Hmisc)
+library(e1071)
+library(pROC)
+library(ggplot2)
+library(rpart.plot)
+library(VIM)
+library(mice)
+
+# Reading the dataset
+nbi <- read.csv('/Users/AkshayKale/Documents/github/nbi-predictive-analysis/decision_tree.csv')
+
+# Select attributes
+df <- nbi %>% select(adt.cat, adtt.cat, material, state, structure.number, structure.type, type.of.wearing.surface, current.deck, current.substructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention, deck.intervention.in.next.3.years, sub.intervention.in.next.3.years, super.intervention.in.next.3.years, precipitation, snowfall, freezethaw, score)
+
+```
+
+# Data selection
+```{r}
+# Select attributes
+df_deck <- df %>% select(adt.cat, adtt.cat, material, structure.type, type.of.wearing.surface, current.deck, current.substructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention,  precipitation, snowfall, freezethaw, score, deck.intervention.in.next.3.years)
+
+# Remove null values
+df_deck <- na.omit(df_deck)
+```
+
+# Preview
+```{r}
+head(df_deck)
+```
+
+# Random forest ( No undersampling )
+```{r}
+target_variable <- 'deck.intervention.in.next.3.years'
+      
+index = createDataPartition(y=df_deck[[target_variable]], p=0.7, list=FALSE)
+train.set = df_deck[index,]
+test.set = df_deck[-index,]
+
+reset.seed <- function()
+{
+  # ensure results are repeatable
+  set.seed(1337)
+}
+library(doParallel)
+num_cores <- detectCores() #note: you can specify a smaller number if you want
+cl <- makePSOCKcluster(num_cores)
+registerDoParallel(cl)
+
+reset.seed()
+model <- deck.intervention.in.next.3.years ~ adt.cat + adtt.cat + material + structure.type + type.of.wearing.surface + current.deck + current.substructure + current.superstructure + total.deck.intervention + total.sub.intervention + total.super.intervention +  precipitation + snowfall + freezethaw + score
+
+#tunelengths = seq(from=5, to=100, by=5)
+tunelengths = c(5)
+list_sens <- c()
+list_spec <- c()
+list_f1 <-c()
+list_tl <-c()
+list_kappa <-c()
+list_auc <- c()
+list_varimps <- c()
+
+probabilities <- data.frame(No=double(), Yes=double())
+varimps <- data.frame()
+for(tl in tunelengths) {
+rf_model = train( model,
+                 data = train.set,
+                 method = "rf",
+                 trControl = trainControl(method = "cv", search = 'random',
+                                          summaryFunction = twoClassSummary,
+                                          classProbs = T, savePredictions = T),  tuneLength = tl,
+                 metric='ROC')
+
+
+# Prediction on the test set
+# Save model
+tree_class_test <- rf_model%>% predict(newdata = test.set, type = 'raw')
+tree_prob_test <- rf_model%>% predict(newdata = test.set, type = 'prob')
+
+# Confusion Matrix
+metrics <- confusionMatrix(tree_class_test, test.set[[target_variable]])
+metricsbyclass <- metrics$byClass
+
+sens <- type.convert(metricsbyclass[1])
+list_sens <- c(list_sens, sens)
+
+spec <- type.convert(metricsbyclass[2])
+list_spec <- c(list_spec, spec)
+
+f1 <- type.convert(metricsbyclass[7])
+list_f1 <- c(list_f1, f1)
+
+tunelen <- tl
+list_tl <- c(list_tl, tunelen)
+
+kappa <- type.convert(metrics$overall[2])
+list_kappa <- c(list_kappa, kappa)
+
+# Confusion matrix
+area <- roc(test.set[[target_variable]], tree_prob_test[[positive_class]], plot = TRUE, print.auc = TRUE, legacy.axes = TRUE)
+list_auc <- c(list_auc, area$auc)
+
+# Probability values
+tree_prob_test['Tunelength'] <- rep(tl, length(tree_class_test))
+
+# Concatenate with other tunelength df
+probabilities <- bind_rows(probabilities, tree_prob_test)
+
+varImp(rf_model)
+}
+
+df_metric <- data.frame(list_sens, list_spec, list_f1, list_tl, list_kappa, list_auc)
+names(df_metric) <- c('Sensitivity', 'Specificity', 'f1','Tunelength', 'Kappa', 'AUC')
+
+write.csv(probabilities, 'rf-prob-deck-nou.csv')
+write.csv(df_metric, 'rf-metrics-deck-nou.csv')
+
+df_metric
+probabilities
+```
+
+# df_metrics 
+```{r}
+df_metric
+```
+
+# df_probabilities
+```{r}
+probabilities
+```
+
