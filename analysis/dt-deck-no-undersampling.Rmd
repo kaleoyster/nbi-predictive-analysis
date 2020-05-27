@@ -19,7 +19,6 @@ library(rattle)                 # Fancy tree plot
 library(rpart.plot) 
 library(dplyr)
 library(parallel)
-
 library(Hmisc)
 library(e1071)
 library(pROC)
@@ -29,9 +28,9 @@ library(VIM)
 library(mice)
 
 # Reading the dataset
-nbi <- read.csv('/Users/AkshayKale/Documents/github/nbi-predictive-analysis/decision_tree.csv')
+nbi <- read.csv('../../data/decision-tree-dataset/decision_tree.csv')
 
-# Select attributes
+# Select attributesk
 df <- nbi %>% select(adt.cat, adtt.cat, material, state, structure.number, structure.type, type.of.wearing.surface, current.deck, current.substructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention, deck.intervention.in.next.3.years, sub.intervention.in.next.3.years, super.intervention.in.next.3.years, precipitation, snowfall, freezethaw, score)
 
 ```
@@ -47,7 +46,7 @@ df_deck <- na.omit(df_deck)
 
 #### *Preview of the data*
 ```{r}
-head(df_deckk)
+head(df_deck)
 ```
 
 #### *Training and testing Deck*
@@ -124,14 +123,14 @@ list_auc <- c(list_auc, area$auc)
 
 # rpart model
 rpart.plot(rtree_model$finalModel)
-filename<-paste('tree-deck-no-undersample', toString(tl), '.csv', collapse = '')
+filename<-paste('../../data/model/deck/tree-deck-no-undersample', toString(tl), '.csv', collapse = '')
 write.csv(rpart.rules(rtree_model$finalModel, roundint=FALSE, clip.facs=TRUE), filename)
 
 # Probability values
 tree_prob_test['Tunelength'] <- rep(tl, length(tree_class_test))
 
 # Concatenate
-probabilities_dt <- bind_rows(probabilities, tree_prob_test)
+probabilities_dt <- bind_rows(probabilities_dt, tree_prob_test)
 
 # metrics
 metrics
@@ -140,15 +139,14 @@ metrics
 df_metric_dt <- data.frame(list_sens, list_spec, list_f1, list_tl, list_kappa, list_auc)
 names(df_metric_dt) <- c('Sensitivity', 'Specificity', 'F1','Tunelength', 'Kappa', 'AUC')
 
-write.csv(probabilities_dt, 'tree-prob-deck-nou.csv')
-write.csv(df_metric_dt, 'tree-metric-deck-nou.csv')
+write.csv(probabilities_dt, '../../data/metrics/dt/tree-prob-deck-nou.csv')
+write.csv(df_metric_dt, '../../data/metrics/dt/tree-metric-deck-nou.csv')
 
 df_metric_dt
 probabilities_dt
 
 # variable importance -> random forest (for all tunelength) -> Ranking (for all variables) 
-# Understanding the relevance of the parameters
-
+# Understanding the relevance of the parameters 
 ```
 
 ```{r}
