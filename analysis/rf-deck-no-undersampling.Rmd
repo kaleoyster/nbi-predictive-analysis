@@ -19,7 +19,6 @@ library(rattle)                 # Fancy tree plot
 library(rpart.plot) 
 library(dplyr)
 library(parallel)
-
 library(Hmisc)
 library(e1071)
 library(pROC)
@@ -29,12 +28,17 @@ library(VIM)
 library(mice)
 
 # Reading the dataset
-nbi <- read.csv('/Users/AkshayKale/Documents/github/nbi-predictive-analysis/decision_tree.csv')
+nbi <- read.csv('../../data/decision-tree-dataset/decision_tree.csv')
 
 # Select attributes
+```
+
+
+```{r}
 df <- nbi %>% select(adt.cat, adtt.cat, material, state, structure.number, structure.type, type.of.wearing.surface, current.deck, current.substructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention, deck.intervention.in.next.3.years, sub.intervention.in.next.3.years, super.intervention.in.next.3.years, precipitation, snowfall, freezethaw, score)
 
 ```
+
 
 # Data selection
 ```{r}
@@ -58,6 +62,9 @@ index = createDataPartition(y=df_deck[[target_variable]], p=0.7, list=FALSE)
 train.set = df_deck[index,]
 test.set = df_deck[-index,]
 
+positive_class = 'No'
+negative_class = 'Yes' 
+
 reset.seed <- function()
 {
   # ensure results are repeatable
@@ -71,8 +78,8 @@ registerDoParallel(cl)
 reset.seed()
 model <- deck.intervention.in.next.3.years ~ adt.cat + adtt.cat + material + structure.type + type.of.wearing.surface + current.deck + current.substructure + current.superstructure + total.deck.intervention + total.sub.intervention + total.super.intervention +  precipitation + snowfall + freezethaw + score
 
-#tunelengths = seq(from=5, to=100, by=5)
-tunelengths = c(5)
+tunelengths = seq(from=5, to=100, by=5)
+#tunelengths = c(1)
 list_sens <- c()
 list_spec <- c()
 list_f1 <-c()
@@ -82,7 +89,7 @@ list_auc <- c()
 list_varimps <- c()
 
 probabilities <- data.frame(No=double(), Yes=double())
-varimps <- data.frame()
+varImportance <- data.frame(names=factor(), score=double(), tunelength=double())
 for(tl in tunelengths) {
 rf_model = train( model,
                  data = train.set,
@@ -117,7 +124,7 @@ list_tl <- c(list_tl, tunelen)
 kappa <- type.convert(metrics$overall[2])
 list_kappa <- c(list_kappa, kappa)
 
-# Confusion matrix
+# Confusion matrix 
 area <- roc(test.set[[target_variable]], tree_prob_test[[positive_class]], plot = TRUE, print.auc = TRUE, legacy.axes = TRUE)
 list_auc <- c(list_auc, area$auc)
 
@@ -127,18 +134,60 @@ tree_prob_test['Tunelength'] <- rep(tl, length(tree_class_test))
 # Concatenate with other tunelength df
 probabilities <- bind_rows(probabilities, tree_prob_test)
 
-varImp(rf_model)
+# Variable Importance
+col_index <- varImp(rf_model)$importance %>% mutate(names=row.names(.)) %>% arrange(-Overall)
+imp_names <- col_index$names
+imp_score <- col_index$Overall
+tls <- rep(tl, length(imp_score))
+temp_df <- data.frame(imp_names, imp_score, tls)
+names(temp_df) <- c('names', 'score', 'tunelength')
+varImportance <- bind_rows(varImportance, temp_df)
+
 }
 
 df_metric <- data.frame(list_sens, list_spec, list_f1, list_tl, list_kappa, list_auc)
 names(df_metric) <- c('Sensitivity', 'Specificity', 'f1','Tunelength', 'Kappa', 'AUC')
 
-write.csv(probabilities, 'rf-prob-deck-nou.csv')
-write.csv(df_metric, 'rf-metrics-deck-nou.csv')
+write.csv(probabilities, '../../data/metrics/rf/rf-prob-deck-nou.csv')
+write.csv(varImportance, '../../data/metrics/rf/rf-varImp-deck-nou.csv')
+write.csv(df_metric, '../../data/metrics/rf/rf-metrics-deck-nou.csv')
 
 df_metric
 probabilities
+varImportance
+
+# Save the random forest model (Done)
+# Save the variable importance model (Done)
+# compute the relevance of the variable importance models (Done)
+
 ```
+
+```{r}
+## save the variable importance of each model
+#list_varimps <- c()
+#varImpModel <- varImp(rf_model)
+#varImpModel$importance$Overall
+#list_varimps <- c(list_varimps, varImpModel)
+#list_varimp
+#varImp(rf_model)$importance
+#c(varImp(rf_model)$importance)
+#imp <- varImp(rf_model)
+#imp
+#rownames(imp)[order(imp, decreasing=TRUE)[1:2]]
+#varImp(rf_model)[1][0]
+#write.csv(varImp(rf_model), 'rf-var-imp.csv')
+#varImportance <- data.frame(names=factor(), score=double(), tunelength=double())
+#col_index <- varImp(rf_model)$importance %>% mutate(names=row.names(.)) %>% arrange(-Overall)
+#imp_names <- col_index$names
+#imp_score <- col_index$Overall
+#tls <- rep(5, length(imp_score))
+#temp_df <- data.frame(imp_names, imp_score, tls)
+#names(temp_df) <- c('names', 'score', 'tunelength')
+#varImportance <- bind_rows(varImportance, temp_df)
+#varImportance
+```
+
+
 
 # df_metrics 
 ```{r}
