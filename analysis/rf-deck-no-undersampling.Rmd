@@ -155,11 +155,6 @@ write.csv(df_metric, '../../data/metrics/rf/rf-metrics-deck-nou.csv')
 df_metric
 probabilities
 varImportance
-
-# Save the random forest model (Done)
-# Save the variable importance model (Done)
-# compute the relevance of the variable importance models (Done)
-
 ```
 
 ```{r}
