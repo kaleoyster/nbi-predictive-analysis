@@ -2,7 +2,7 @@
 title: "R Notebook"
 author: Akshay Kale
 output: html_notebook
-description: Random foreset model to model deck rating without undersampling
+description: Random forest algorithm to model deck rating without undersampling
 ---
 
 # Librarires
@@ -30,15 +30,9 @@ library(mice)
 # Reading the dataset
 nbi <- read.csv('../../data/decision-tree-dataset/decision_tree.csv')
 
-# Select attributes
-```
-
-
-```{r}
+# Select attribute
 df <- nbi %>% select(adt.cat, adtt.cat, material, state, structure.number, structure.type, type.of.wearing.surface, current.deck, current.substructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention, deck.intervention.in.next.3.years, sub.intervention.in.next.3.years, super.intervention.in.next.3.years, precipitation, snowfall, freezethaw, score)
-
 ```
-
 
 # Data selection
 ```{r}
@@ -79,7 +73,7 @@ reset.seed()
 model <- deck.intervention.in.next.3.years ~ adt.cat + adtt.cat + material + structure.type + type.of.wearing.surface + current.deck + current.substructure + current.superstructure + total.deck.intervention + total.sub.intervention + total.super.intervention +  precipitation + snowfall + freezethaw + score
 
 tunelengths = seq(from=5, to=100, by=5)
-#tunelengths = c(1)
+
 list_sens <- c()
 list_spec <- c()
 list_f1 <-c()
@@ -101,7 +95,6 @@ rf_model = train( model,
 
 
 # Prediction on the test set
-# Save model
 tree_class_test <- rf_model%>% predict(newdata = test.set, type = 'raw')
 tree_prob_test <- rf_model%>% predict(newdata = test.set, type = 'prob')
 
@@ -155,31 +148,6 @@ write.csv(df_metric, '../../data/metrics/rf/rf-metrics-deck-nou.csv')
 df_metric
 probabilities
 varImportance
-```
-
-```{r}
-## save the variable importance of each model
-#list_varimps <- c()
-#varImpModel <- varImp(rf_model)
-#varImpModel$importance$Overall
-#list_varimps <- c(list_varimps, varImpModel)
-#list_varimp
-#varImp(rf_model)$importance
-#c(varImp(rf_model)$importance)
-#imp <- varImp(rf_model)
-#imp
-#rownames(imp)[order(imp, decreasing=TRUE)[1:2]]
-#varImp(rf_model)[1][0]
-#write.csv(varImp(rf_model), 'rf-var-imp.csv')
-#varImportance <- data.frame(names=factor(), score=double(), tunelength=double())
-#col_index <- varImp(rf_model)$importance %>% mutate(names=row.names(.)) %>% arrange(-Overall)
-#imp_names <- col_index$names
-#imp_score <- col_index$Overall
-#tls <- rep(5, length(imp_score))
-#temp_df <- data.frame(imp_names, imp_score, tls)
-#names(temp_df) <- c('names', 'score', 'tunelength')
-#varImportance <- bind_rows(varImportance, temp_df)
-#varImportance
 ```
 
 

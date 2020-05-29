@@ -139,14 +139,13 @@ metrics
 df_metric_dt <- data.frame(list_sens, list_spec, list_f1, list_tl, list_kappa, list_auc)
 names(df_metric_dt) <- c('Sensitivity', 'Specificity', 'F1','Tunelength', 'Kappa', 'AUC')
 
+# Writing outputs
 write.csv(probabilities_dt, '../../data/metrics/dt/tree-prob-deck-nou.csv')
 write.csv(df_metric_dt, '../../data/metrics/dt/tree-metric-deck-nou.csv')
 
 df_metric_dt
 probabilities_dt
 
-# variable importance -> random forest (for all tunelength) -> Ranking (for all variables) 
-# Understanding the relevance of the parameters 
 ```
 
 ```{r}
