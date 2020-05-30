@@ -1,0 +1,444 @@
+---
+title: "R Notebook"
+output: html_notebook
+author: Akshay Kale
+description: Decision Tree model of NBI; this model takes into account the time series data
+---
+
+```{r}
+library(lattice)
+library(ISLR)
+library(MASS)
+library(caret)
+library(tidyverse)
+library(rpart)
+library(plyr); library(dplyr)
+library(caret)
+library(rattle)                 # Fancy tree plot
+library(rpart.plot) 
+library(dplyr)
+library(parallel)
+
+library(Hmisc)
+library(e1071)
+library(pROC)
+library(ggplot2)
+library(rpart.plot)
+library(VIM)
+library(mice)
+
+# Reading the dataset
+nbi <- read.csv('/Users/AkshayKale/Documents/github/nbi-predictive-analysis/decision_tree.csv')
+
+# Select attributes
+df <- nbi %>% select(adt.cat, adtt.cat, material, state, structure.number, structure.type, type.of.wearing.surface, current.deck, current.substructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention, deck.intervention.in.next.3.years, sub.intervention.in.next.3.years, super.intervention.in.next.3.years, precipitation, snowfall, freezethaw, score)
+
+```
+
+# Dataset to model deck of the bridges
+```{r}
+# Select attributes
+df_deck <- df %>% select(adt.cat, adtt.cat, material, structure.type, type.of.wearing.surface, current.deck, current.substructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention,  precipitation, snowfall, freezethaw, score, deck.intervention.in.next.3.years)
+
+# Remove null values
+df_deck <- na.omit(df_deck)
+```
+
+
+# Training and testing Deck
+```{r}
+target_variable <- 'deck.intervention.in.next.3.years'
+index = createDataPartition(y=df_deck[[target_variable]], p=0.7, list=FALSE)
+train.set = df_deck[index,]
+test.set = df_deck[-index,]
+
+positive_class = 'No'
+negative_class = 'Yes' 
+
+reset.seed <- function()
+{
+  # ensure results are repeatable
+  set.seed(1337)
+}
+library(doParallel)
+num_cores <- detectCores() #note: you can specify a smaller number if you want
+cl <- makePSOCKcluster(num_cores)
+registerDoParallel(cl)
+
+reset.seed()
+model <- deck.intervention.in.next.3.years ~ adt.cat + adtt.cat + material + structure.type + type.of.wearing.surface + current.deck + current.substructure + current.superstructure + total.deck.intervention + total.sub.intervention + total.super.intervention +  precipitation + snowfall + freezethaw + score
+
+tunelengths = seq(from=5, to=100, by=5)
+
+list_sens <- c()
+list_spec <- c()
+list_f1 <-c()
+list_tl <-c()
+list_kappa <-c()
+list_auc <- c()
+
+
+for(tl in tunelengths) {
+rtree_model = train( model,
+                 data = train.set,
+                 method = "rpart",
+                 trControl = trainControl(method = "repeatedcv", search = 'random', repeats = 5,
+                                          summaryFunction = twoClassSummary,
+                                          classProbs = T, savePredictions = T),  tuneLength = tl,
+                 metric='ROC')
+
+
+rtree_model
+
+# Prediction on the test set
+nbi.pred = predict(rtree_model, newdata = test.set, type = 'prob')
+
+nbi.pred = predict(rtree_model, newdata = test.set)
+
+# Confusion Matrix
+metrics <- confusionMatrix(nbi.pred, test.set[[target_variable]])
+metricsbyclass <- metrics$byClass
+
+sens <- type.convert(metricsbyclass[1])
+list_sens <- c(list_sens, sens)
+
+spec <- type.convert(metricsbyclass[2])
+list_spec <- c(list_spec, spec)
+
+f1 <- type.convert(metricsbyclass[7])
+list_f1 <- c(list_f1, f1)
+
+tunelen <- tl
+list_tl <- c(list_tl, tunelen)
+
+kappa <- type.convert(metrics$overall[2])
+list_kappa <- c(list_kappa, kappa)
+
+# Predict on the training set
+tree_class_train <- rtree_model%>% predict(newdata = test.set, type = 'raw')
+tree_prob_train <- rtree_model%>% predict(newdata = test.set, type = 'prob')
+
+# Confusion matrix
+area <- roc(test.set[[target_variable]], tree_prob_train[[positive_class]], plot = TRUE, print.auc = TRUE, legacy.axes = TRUE)
+list_auc <- c(list_auc, area$auc)
+
+# rpart model
+rpart.plot(rtree_model$finalModel)
+filename<-paste('tree-deck', toString(tl), '.csv', collapse = '')
+write.csv(rpart.rules(rtree_model$finalModel, roundint=FALSE, clip.facs=TRUE), filename)
+
+# metrics
+metrics
+}
+
+df_metric <- data.frame(list_sens, list_spec, list_f1, list_tl, list_kappa, list_auc)
+names(df_metric) <- c('Sensitivity', 'Specificity', 'F1','Tunelength', 'Kappa', 'AUC')
+
+df_metric
+```
+### Results of Decision tree without undersampling:
+  With respect to kappa value and AUC,
+  1. Decision tree with tunelength = , performs best
+
+# Decision Tree (Undersampling)
+```{r}
+target_variable <- 'deck.intervention.in.next.3.years'
+      
+index = createDataPartition(y=df_deck[[target_variable]], p=0.7, list=FALSE)
+train.set = df_deck[index,]
+test.set = df_deck[-index,]
+
+# rows that have "no" and "yes" entries
+no_ind <- which(train.set[[target_variable]] == "No")
+yes_ind <- which(train.set[[target_variable]] == "Yes")
+
+#nsamp <- 10   #number of elements to sample
+## if you want all elements of the smaller class, could be:
+nsamp <- min(length(no_ind), length(yes_ind))
+
+## select `nsamp` entries with "no" and `nsamp` entries with "yes"
+pick_no <- sample(no_ind, nsamp)
+pick_yes <- sample(yes_ind, nsamp)
+
+train.set.undersample <- train.set[c(pick_no, pick_yes), ]
+
+reset.seed <- function()
+{
+  # ensure results are repeatable
+  set.seed(1337)
+}
+library(doParallel)
+num_cores <- detectCores() #note: you can specify a smaller number if you want
+cl <- makePSOCKcluster(num_cores)
+registerDoParallel(cl)
+
+reset.seed()
+
+model <- deck.intervention.in.next.3.years ~ adt.cat + adtt.cat + material + structure.type + type.of.wearing.surface + current.deck + current.substructure + current.superstructure + total.deck.intervention + total.sub.intervention + total.super.intervention +  precipitation + snowfall + freezethaw +  score
+
+tunelengths = c(4, 10, 15 , 20)
+
+list_sens <- c()
+list_spec <- c()
+list_f1 <-c()
+list_tl <-c()
+list_kappa <-c()
+list_auc <- c()
+
+
+for(tl in tunelengths) {
+rtree_model = train( model,
+                 data = train.set.undersample,
+                 method = "rpart",
+                 trControl = trainControl(method = "repeatedcv", search = 'random', repeats = 5,
+                                          summaryFunction = twoClassSummary,
+                                          classProbs = T, savePredictions = T),  tuneLength = tl,
+                 metric='ROC')
+
+
+rtree_model
+
+# Prediction on the test set
+nbi.pred = predict(rtree_model, newdata = test.set, type = 'prob')
+
+nbi.pred = predict(rtree_model, newdata = test.set)
+
+# Confusion Matrix
+metrics <- confusionMatrix(nbi.pred, test.set[[target_variable]])
+metricsbyclass <- metrics$byClass
+
+sens <- type.convert(metricsbyclass[1])
+list_sens <- c(list_sens, sens)
+
+spec <- type.convert(metricsbyclass[2])
+list_spec <- c(list_spec, spec)
+
+f1 <- type.convert(metricsbyclass[7])
+list_f1 <- c(list_f1, f1)
+
+tunelen <- tl
+list_tl <- c(list_tl, tunelen)
+
+kappa <- type.convert(metrics$overall[2])
+list_kappa <- c(list_kappa, kappa)
+
+tree_class_train <- rtree_model%>% predict(newdata = test.set, type = 'raw')
+tree_prob_train <- rtree_model%>% predict(newdata = test.set, type = 'prob')
+
+area <- roc(test.set[[target_variable]], tree_prob_train[[positive_class]], plot = TRUE, print.auc = TRUE, legacy.axes = TRUE)
+list_auc <- c(list_auc, area$auc)
+
+rpart.plot(rtree_model$finalModel)
+filename<-paste('tree-deck-undersampling', toString(tl), '.csv', collapse = '')
+write.csv(rpart.rules(rtree_model$finalModel, roundint=FALSE, clip.facs=TRUE), filename)
+
+metrics
+}
+
+df_metric <- data.frame(list_sens, list_spec, list_f1, list_tl, list_kappa, list_auc)
+names(df_metric) <- c('Sensitivity', 'Specificity', 'f1','Tunelength', 'Kappa', 'AUC')
+
+df_metric
+
+```
+
+
+### Results Decision tree (Undersampling):
+  With respect to kappa value and AUC,
+  1. Decision tree with tunelength = , performs best
+
+
+# Random forest
+```{r}
+
+target_variable <- 'deck.intervention.in.next.3.years'
+
+index = createDataPartition(y=df_deck[[target_variable]], p=0.7, list=FALSE)
+train.set = df_deck[index,]
+test.set = df_deck[-index,]
+
+
+reset.seed <- function()
+{
+  # ensure results are repeatable
+  set.seed(1337)
+}
+library(doParallel)
+num_cores <- detectCores() #note: you can specify a smaller number if you want
+cl <- makePSOCKcluster(num_cores)
+registerDoParallel(cl)
+
+reset.seed()
+model <- deck.intervention.in.next.3.years ~ adt.cat + adtt.cat + material + structure.type + type.of.wearing.surface + current.deck + current.substructure + current.superstructure + total.deck.intervention + total.sub.intervention + total.super.intervention +  precipitation + snowfall + freezethaw + score
+
+
+tunelengths = c(4, 10, 15 , 20)
+
+list_sens <- c()
+list_spec <- c()
+list_f1 <-c()
+list_tl <-c()
+list_kappa <-c()
+list_auc <- c()
+
+
+for(tl in tunelengths) {
+rtree_model = train( model,
+                 data = train.set,
+                 method = "rf",
+                 trControl = trainControl(method = "cv", search = 'random',
+                                          summaryFunction = twoClassSummary,
+                                          classProbs = T, savePredictions = T),  tuneLength = 4,
+                 metric='ROC')
+
+
+rtree_model
+
+# Prediction on the test set
+nbi.pred = predict(rtree_model, newdata = test.set, type = 'prob')
+
+nbi.pred = predict(rtree_model, newdata = test.set)
+
+# Confusion Matrix
+metrics <- confusionMatrix(nbi.pred, test.set[[target_variable]])
+metricsbyclass <- metrics$byClass
+
+sens <- type.convert(metricsbyclass[1])
+list_sens <- c(list_sens, sens)
+
+spec <- type.convert(metricsbyclass[2])
+list_spec <- c(list_spec, spec)
+
+f1 <- type.convert(metricsbyclass[7])
+list_f1 <- c(list_f1, f1)
+
+tunelen <- tl
+list_tl <- c(list_tl, tunelen)
+
+kappa <- type.convert(metrics$overall[2])
+list_kappa <- c(list_kappa, kappa)
+
+tree_class_train <- rtree_model%>% predict(newdata = test.set, type = 'raw')
+tree_prob_train <- rtree_model%>% predict(newdata = test.set, type = 'prob')
+
+# Confusion matrix
+area <- roc(test.set[[target_variable]], tree_prob_train[[positive_class]], plot = TRUE, print.auc = TRUE, legacy.axes = TRUE)
+list_auc <- c(list_auc, area$auc)
+
+}
+
+df_metric <- data.frame(list_sens, list_spec, list_f1, list_tl, list_kappa, list_auc)
+names(df_metric) <- c('Sensitivity', 'Specificity', 'f1','Tunelength', 'Kappa', 'AUC')
+
+df_metric
+```
+
+```{r}
+varImp(rtree_model)
+```
+
+# Training and Testing Deck ( Undersampled )
+
+```{r}
+metrics
+```
+
+# Random forest ( Undersampled )
+```{r}
+target_variable <- 'deck.intervention.in.next.3.years'
+      
+index = createDataPartition(y=df_deck[[target_variable]], p=0.7, list=FALSE)
+train.set = df_deck[index,]
+test.set = df_deck[-index,]
+
+# rows that have "no" and "yes" entries
+no_ind <- which(train.set[[target_variable]] == "No")
+yes_ind <- which(train.set[[target_variable]] == "Yes")
+
+#nsamp <- 10   #number of elements to sample
+## if you want all elements of the smaller class, could be:
+nsamp <- min(length(no_ind), length(yes_ind))
+
+## select `nsamp` entries with "no" and `nsamp` entries with "yes"
+pick_no <- sample(no_ind, nsamp)
+pick_yes <- sample(yes_ind, nsamp)
+
+train.set.undersample <- train.set[c(pick_no, pick_yes), ]
+reset.seed <- function()
+{
+  # ensure results are repeatable
+  set.seed(1337)
+}
+library(doParallel)
+num_cores <- detectCores() #note: you can specify a smaller number if you want
+cl <- makePSOCKcluster(num_cores)
+registerDoParallel(cl)
+
+reset.seed()
+model <- deck.intervention.in.next.3.years ~ adt.cat + adtt.cat + material + structure.type + type.of.wearing.surface + current.deck + current.substructure + current.superstructure + total.deck.intervention + total.sub.intervention + total.super.intervention +  precipitation + snowfall + freezethaw + score
+
+tunelengths = c(4, 10, 15 , 20)
+
+list_sens <- c()
+list_spec <- c()
+list_f1 <-c()
+list_tl <-c()
+list_kappa <-c()
+list_auc <- c()
+
+
+for(tl in tunelengths) {
+rtree_model = train( model,
+                 data = train.set.undersample,
+                 method = "rf",
+                 trControl = trainControl(method = "cv", search = 'random',
+                                          summaryFunction = twoClassSummary,
+                                          classProbs = T, savePredictions = T),  tuneLength = 4,
+                 metric='ROC')
+
+
+rtree_model
+
+# Prediction on the test set
+nbi.pred = predict(rtree_model, newdata = test.set, type = 'prob')
+
+nbi.pred = predict(rtree_model, newdata = test.set)
+
+# Confusion Matrix
+metrics <- confusionMatrix(nbi.pred, test.set[[target_variable]])
+metricsbyclass <- metrics$byClass
+
+sens <- type.convert(metricsbyclass[1])
+list_sens <- c(list_sens, sens)
+
+spec <- type.convert(metricsbyclass[2])
+list_spec <- c(list_spec, spec)
+
+f1 <- type.convert(metricsbyclass[7])
+list_f1 <- c(list_f1, f1)
+
+tunelen <- tl
+list_tl <- c(list_tl, tunelen)
+
+kappa <- type.convert(metrics$overall[2])
+list_kappa <- c(list_kappa, kappa)
+
+tree_class_train <- rtree_model%>% predict(newdata = test.set, type = 'raw')
+tree_prob_train <- rtree_model%>% predict(newdata = test.set, type = 'prob')
+
+# Confusion matrix
+area <- roc(test.set[[target_variable]], tree_prob_train[[positive_class]], plot = TRUE, print.auc = TRUE, legacy.axes = TRUE)
+list_auc <- c(list_auc, area$auc)
+
+}
+
+df_metric <- data.frame(list_sens, list_spec, list_f1, list_tl, list_kappa, list_auc)
+names(df_metric) <- c('Sensitivity', 'Specificity', 'f1','Tunelength', 'Kappa', 'AUC')
+
+df_metric
+```
+```{r}
+metrics
+```
+
+
