@@ -8,8 +8,8 @@ description: Comparison of decision tree, random forest, and xgb
 ### Import Data files
 ##### *Reading csv files*
 ```{r}
-dt_mets = read.csv('Documents/github/nbi-predictive-analysis/tree-metric-deck-nou.csv') 
-rf_mets = read.csv('Documents/github/nbi-predictive-analysis/rf-metrics-nou.csv')
+dt_mets = read.csv('../../../data/trees/metrics/dt/tree-metric-deck-nou.csv') 
+rf_mets = read.csv('../../../data/trees/metrics/rf/rf-metrics-nou.csv')
 ```
 
 ##### *Preview Decision tree metrics*
