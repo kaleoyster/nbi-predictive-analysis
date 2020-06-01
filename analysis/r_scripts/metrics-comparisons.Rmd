@@ -8,8 +8,9 @@ description: Comparison of decision tree, random forest, and xgb
 ### Import Data files
 ##### *Reading csv files*
 ```{r}
-dt_mets = read.csv('../../../data/trees/metrics/dt/tree-metric-deck-nou.csv') 
-rf_mets = read.csv('../../../data/trees/metrics/rf/rf-metrics-nou.csv')
+dt_mets = read.csv('../../../../../Google\ Drive/Data/trees/metrics/dt/tree-metric-deck-nou.csv') 
+rf_mets = read.csv('../../../../../Google\ Drive/Data/trees/metrics/rf/rf-metrics-deck-nou.csv')
+rf_imp = read.csv('../../../../../Google\ Drive/Data/trees/metrics/rf/rf-varImp-deck-nou.csv')
 ```
 
 ##### *Preview Decision tree metrics*
@@ -27,7 +28,6 @@ rf_mets
 #### *Kappa vs AUC*
 ```{r}
 library(ggplot2)
-
 # Decision Tree (Kappa vs AUC)
 ggplot(dt_mets, aes(x=Kappa, y=AUC)) + 
   geom_point(color='red') + 
@@ -69,3 +69,44 @@ p_auc_rf <- ggplot(rf_mets, aes(x=Tunelength, y=AUC)) +
   labs(title = "Random forest AUC values with respect to Tunelength")
 p_auc_rf
 ```
+
+#### *Preview of the Important Variables*
+```{r}
+rf_imp_5 <- rf_imp[ which(rf_imp$tunelength==5), ]
+rf_imp_10 <- rf_imp[ which(rf_imp$tunelength==10), ]
+rf_imp_15 <- rf_imp[ which(rf_imp$tunelength==15), ]
+rf_imp_20 <- rf_imp[ which(rf_imp$tunelength==20), ]
+rf_imp_25 <- rf_imp[ which(rf_imp$tunelength==25), ]
+rf_imp_30 <- rf_imp[ which(rf_imp$tunelength==30), ]
+rf_imp_35 <- rf_imp[ which(rf_imp$tunelength==35), ]
+rf_imp_40 <- rf_imp[ which(rf_imp$tunelength==40), ]
+rf_imp_45 <- rf_imp[ which(rf_imp$tunelength==45), ]
+rf_imp_50 <- rf_imp[ which(rf_imp$tunelength==50), ]
+rf_imp_55 <- rf_imp[ which(rf_imp$tunelength==55), ]
+rf_imp_60 <- rf_imp[ which(rf_imp$tunelength==60), ]
+rf_imp_75 <- rf_imp[ which(rf_imp$tunelength==75), ]
+rf_imp_80 <- rf_imp[ which(rf_imp$tunelength==80), ]
+rf_imp_85 <- rf_imp[ which(rf_imp$tunelength==85), ]
+rf_imp_90 <- rf_imp[ which(rf_imp$tunelength==90), ]
+rf_imp_95 <- rf_imp[ which(rf_imp$tunelength==95), ]
+rf_imp_10 <- rf_imp[ which(rf_imp$tunelength==100), ]
+```
+
+```{r}
+rf_imp
+```
+##### *Top 10 important elements*
+```{r}
+# We can create a dumbbell chart: 
+  # 1. Every attribute will have a range of ranks
+  # 2. Average of the importance of the variables
+
+library(dplyr)
+#df_rf_5_top <- rf_imp_5 %>% top_n(10)
+p <- ggplot(head(rf_imp_5), aes(names, score)) +
+  geom_bar(stat = "identity") + 
+  theme(axis.text.x = element_text(angle=45))
+
+p
+```
+
