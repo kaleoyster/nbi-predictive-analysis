@@ -102,19 +102,45 @@ rf_imp
   # 2. Average of the importance of the variables
 
 library(dplyr)
-#df_rf_5_top <- rf_imp_5 %>% top_n(10)
 p <- ggplot(head(rf_imp_5), aes(names, score)) +
   geom_bar(stat = "identity") + 
   theme(axis.text.x = element_text(angle=45))
-
 p
 ```
+```{r}
+library(dplyr)
+p <- ggplot(head(rf_imp_10), aes(names, score)) +
+  geom_bar(stat = "identity") + 
+  theme(axis.text.x = element_text(angle=45))
+p
+```
+
 ##### *Correlation of the Scores and Variable importance*
 ```{r}
 library(ggpubr)
 # Import dataset
-# 
-# Correlation betwee
+df_rf <- read.csv("../../../data/trees/decision-tree-dataset/decision_tree.csv")
 
+# Attributes selection
+df_rf_sample <- df_rf %>% select(current.deck, current.superstructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention, snowfall, freezethaw, precipitation, score)
+```
+
+```{r}
+library(corrplot)
+library(RColorBrewer)
+df_rf_sample <- na.omit(df_rf_sample)
+corr <-cor(df_rf_sample)
+corrplot(corr, type="upper", order="hclust",col=brewer.pal(n=8, name="RdYlBu"))
+```
+```{r}
+data %>%
+  arrange(val) %>%    # First sort by val. This sort the dataframe but NOT the factor levels
+  mutate(name=factor(name, levels=name)) %>%   # This trick update the factor levels
+  ggplot( aes(x=name, y=val)) +
+    geom_segment( aes(xend=name, yend=0)) +
+    geom_point( size=4, color="orange") +
+    coord_flip() +
+    theme_bw() +
+    xlab("")
 ```
 
