@@ -24,7 +24,6 @@ rf_mets
 ```
 
 ### Visual comparison of performance meterics between Decision Tree and Random Forest
-
 #### *Kappa vs AUC*
 ```{r}
 library(ggplot2)
@@ -93,7 +92,14 @@ rf_imp_10 <- rf_imp[ which(rf_imp$tunelength==100), ]
 ```
 
 ```{r}
-rf_imp
+concatenated <- rbind(rf_imp_10, rf_imp_40)
+mine.heatmap <- ggplot(data = concatenated, mapping = aes(x = tunelength,
+                                                       y = names,
+                                                       fill = score)) +
+  geom_tile() +
+  xlab(label = "Sample")
+mine.heatmap
+
 ```
 ##### *Top 10 important elements*
 ```{r}
