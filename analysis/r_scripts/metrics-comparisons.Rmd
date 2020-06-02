@@ -109,4 +109,12 @@ p <- ggplot(head(rf_imp_5), aes(names, score)) +
 
 p
 ```
+##### *Correlation of the Scores and Variable importance*
+```{r}
+library(ggpubr)
+# Import dataset
+# 
+# Correlation betwee
+
+```
 
