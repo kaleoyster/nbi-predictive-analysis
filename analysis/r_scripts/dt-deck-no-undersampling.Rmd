@@ -28,17 +28,16 @@ library(VIM)
 library(mice)
 
 # Reading the dataset
-nbi <- read.csv('../../data/decision-tree-dataset/decision_tree.csv')
+nbi <- read.csv('../../../data/trees/decision-tree-dataset/decision_tree.csv')
 
 # Select attributesk
-df <- nbi %>% select(adt.cat, adtt.cat, material, state, structure.number, structure.type, type.of.wearing.surface, current.deck, current.substructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention, deck.intervention.in.next.3.years, sub.intervention.in.next.3.years, super.intervention.in.next.3.years, precipitation, snowfall, freezethaw, score)
-
+df <- nbi %>% dplyr::select(adt.cat, adtt.cat, material, state, structure.number, structure.type, type.of.wearing.surface, current.deck, current.substructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention, deck.intervention.in.next.3.years, sub.intervention.in.next.3.years, super.intervention.in.next.3.years, precipitation, snowfall, freezethaw, score)
 ```
 
 #### *Dataset to model deck of the bridges*
 ```{r}
 # Select attributes
-df_deck <- df %>% select(adt.cat, adtt.cat, material, structure.type, type.of.wearing.surface, current.deck, current.substructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention,  precipitation, snowfall, freezethaw, score, deck.intervention.in.next.3.years)
+df_deck <- nbi %>% dplyr::select(adt.cat, adtt.cat, material, structure.type, type.of.wearing.surface, current.deck, current.substructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention,  precipitation, snowfall, freezethaw, score, deck.intervention.in.next.3.years)
 
 # Remove null values
 df_deck <- na.omit(df_deck)
@@ -73,7 +72,6 @@ reset.seed()
 model <- deck.intervention.in.next.3.years ~ adt.cat + adtt.cat + material + structure.type + type.of.wearing.surface + current.deck + current.substructure + current.superstructure + total.deck.intervention + total.sub.intervention + total.super.intervention +  precipitation + snowfall + freezethaw + score
 
 tunelengths = seq(from=5, to=100, by=5)
-
 list_sens <- c()
 list_spec <- c()
 list_f1 <-c()
@@ -123,7 +121,7 @@ list_auc <- c(list_auc, area$auc)
 
 # rpart model
 rpart.plot(rtree_model$finalModel)
-filename<-paste('../../data/model/deck/tree-deck-no-undersample', toString(tl), '.csv', collapse = '')
+filename <-paste('../../../data/trees/models/deck/tree-deck-no-undersample', toString(tl), '.csv', collapse = '')
 write.csv(rpart.rules(rtree_model$finalModel, roundint=FALSE, clip.facs=TRUE), filename)
 
 # Probability values
@@ -140,12 +138,12 @@ df_metric_dt <- data.frame(list_sens, list_spec, list_f1, list_tl, list_kappa, l
 names(df_metric_dt) <- c('Sensitivity', 'Specificity', 'F1','Tunelength', 'Kappa', 'AUC')
 
 # Writing outputs
-write.csv(probabilities_dt, '../../data/metrics/dt/tree-prob-deck-nou.csv')
-write.csv(df_metric_dt, '../../data/metrics/dt/tree-metric-deck-nou.csv')
+write.csv(probabilities_dt, '../../../data/trees/metrics/dt/tree-prob-deck-nou.csv')
+write.csv(probabilities_dt, '../../../data/trees/metrics/dt/tree-metric-deck-nou.csv')
+write.csv(df_metric_dt, '../../../data/trees/metrics/dt/tree-metric-deck-nou.csv')
 
 df_metric_dt
 probabilities_dt
-
 ```
 
 ```{r}
