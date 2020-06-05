@@ -83,39 +83,50 @@ rf_imp_45 <- rf_imp[ which(rf_imp$tunelength==45), ]
 rf_imp_50 <- rf_imp[ which(rf_imp$tunelength==50), ]
 rf_imp_55 <- rf_imp[ which(rf_imp$tunelength==55), ]
 rf_imp_60 <- rf_imp[ which(rf_imp$tunelength==60), ]
+rf_imp_65 <- rf_imp[ which(rf_imp$tunelength==65), ]
+rf_imp_70 <- rf_imp[ which(rf_imp$tunelength==70), ]
 rf_imp_75 <- rf_imp[ which(rf_imp$tunelength==75), ]
 rf_imp_80 <- rf_imp[ which(rf_imp$tunelength==80), ]
 rf_imp_85 <- rf_imp[ which(rf_imp$tunelength==85), ]
 rf_imp_90 <- rf_imp[ which(rf_imp$tunelength==90), ]
 rf_imp_95 <- rf_imp[ which(rf_imp$tunelength==95), ]
-rf_imp_10 <- rf_imp[ which(rf_imp$tunelength==100), ]
+rf_imp_100 <- rf_imp[ which(rf_imp$tunelength==100), ]
 ```
 
+#### *Heat map to visualize the importance of variable across tunelengths*
 ```{r}
-concatenated <- rbind(rf_imp_10, rf_imp_40)
+concatenated <- rbind(rf_imp_5,
+                      rf_imp_10,
+                      rf_imp_15,
+                      rf_imp_20,
+                      rf_imp_25,
+                      rf_imp_30,
+                      rf_imp_35,
+                      rf_imp_40,
+                      rf_imp_45,
+                      rf_imp_50,
+                      rf_imp_55,
+                      rf_imp_60,
+                      rf_imp_65,
+                      rf_imp_70,
+                      rf_imp_75,
+                      rf_imp_80,
+                      rf_imp_85,
+                      rf_imp_90,
+                      rf_imp_95,
+                      rf_imp_100)
+
 mine.heatmap <- ggplot(data = concatenated, mapping = aes(x = tunelength,
                                                        y = names,
                                                        fill = score)) +
-  geom_tile() +
-  xlab(label = "Sample")
+                                                       geom_tile() +
+                                                       xlab(label = "Sample")
 mine.heatmap
-
 ```
 ##### *Top 10 important elements*
 ```{r}
-# We can create a dumbbell chart: 
-  # 1. Every attribute will have a range of ranks
-  # 2. Average of the importance of the variables
-
 library(dplyr)
 p <- ggplot(head(rf_imp_5), aes(names, score)) +
-  geom_bar(stat = "identity") + 
-  theme(axis.text.x = element_text(angle=45))
-p
-```
-```{r}
-library(dplyr)
-p <- ggplot(head(rf_imp_10), aes(names, score)) +
   geom_bar(stat = "identity") + 
   theme(axis.text.x = element_text(angle=45))
 p
@@ -136,7 +147,7 @@ library(corrplot)
 library(RColorBrewer)
 df_rf_sample <- na.omit(df_rf_sample)
 corr <-cor(df_rf_sample)
-corrplot(corr, type="upper", order="hclust",col=brewer.pal(n=8, name="RdYlBu"))
+corrplot(corr, type="upper", order="hclust", col=brewer.pal(n=8, name="RdYlBu"))
 ```
 ```{r}
 data %>%
