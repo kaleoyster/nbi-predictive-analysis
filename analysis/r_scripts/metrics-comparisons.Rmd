@@ -40,7 +40,10 @@ ggplot(rf_mets, aes(x=Kappa, y=AUC)) +
   labs(title="Random Forest (Kappa vs AUC)")
 ```
 
-#### *Kappa value with respect to tune length
+#### *Kappa value with respect to tune length()
+## Recommended range of scores for repairs - e.g., 80-100 (R vs. NR), ..., 40-60 (R vs. NR)
+## Followup analysis: comparison of variable in selecting bridges for repair with respect to NDOT and RF
+##                   : Clustering - mislabled.
 ```{r}
 # Decision kappa value with respect to tune length
 p_kappa_dt <- ggplot(dt_mets, aes(x=Tunelength, y=Kappa)) +
@@ -139,7 +142,7 @@ library(ggpubr)
 df_rf <- read.csv("../../../data/trees/decision-tree-dataset/decision_tree.csv")
 
 # Attributes selection
-df_rf_sample <- df_rf %>% select(current.deck, current.superstructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention, snowfall, freezethaw, precipitation, score)
+df_rf_sample <- df_rf %>% dplyr::select(current.deck, current.superstructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention, snowfall, freezethaw, precipitation)
 ```
 
 ```{r}
