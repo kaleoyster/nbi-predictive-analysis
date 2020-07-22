@@ -126,6 +126,7 @@ write.csv(rpart.rules(rtree_model$finalModel, roundint=FALSE, clip.facs=TRUE), f
 
 # Probability values
 tree_prob_test['Tunelength'] <- rep(tl, length(tree_class_test))
+tree_prob_test['StructureNumber'] <- df[rownames(tree_prob_test),]$structure.number
 
 # Concatenate
 probabilities_dt <- bind_rows(probabilities_dt, tree_prob_test)
@@ -139,14 +140,9 @@ names(df_metric_dt) <- c('Sensitivity', 'Specificity', 'F1','Tunelength', 'Kappa
 
 # Writing outputs
 write.csv(probabilities_dt, '../../../data/trees/metrics/dt/tree-prob-deck-nou.csv')
-write.csv(probabilities_dt, '../../../data/trees/metrics/dt/tree-metric-deck-nou.csv')
 write.csv(df_metric_dt, '../../../data/trees/metrics/dt/tree-metric-deck-nou.csv')
 
 df_metric_dt
 probabilities_dt
-```
-
-```{r}
-df_metric_dt
 ```
 

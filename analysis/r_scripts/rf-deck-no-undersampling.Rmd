@@ -45,7 +45,7 @@ df_deck <- na.omit(df_deck)
 
 # Preview
 ```{r}
-head(df_deck)
+head()
 ```
 
 # Random forest ( No undersampling )

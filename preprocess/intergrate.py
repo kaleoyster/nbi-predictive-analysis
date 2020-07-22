@@ -8,6 +8,7 @@ from collections import defaultdict
 df = pd.read_csv('/Users/AkshayKale/Documents/github/nbi-predictive-analysis/decision-tree-dataset.csv')
 snow_df = pd.read_csv('/Users/AkshayKale/Documents/github/nbi-predictive-analysis/baseline_category_2_balanced.csv')
 
+print(df.shape, snow_df.shape)
 # Initialize dictionarires
 structure_precp = defaultdict()
 structure_snow = defaultdict()
