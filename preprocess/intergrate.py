@@ -9,6 +9,7 @@ df = pd.read_csv('/Users/AkshayKale/Documents/github/nbi-predictive-analysis/dec
 snow_df = pd.read_csv('/Users/AkshayKale/Documents/github/nbi-predictive-analysis/baseline_category_2_balanced.csv')
 
 print(df.shape, snow_df.shape)
+
 # Initialize dictionarires
 structure_precp = defaultdict()
 structure_snow = defaultdict()
