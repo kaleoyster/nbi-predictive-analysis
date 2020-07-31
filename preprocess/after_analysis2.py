@@ -1,6 +1,9 @@
 """
-description: This file contains functions that integrate
-bridge scores to NDOT identified maintenance bridges
+description:
+    The file contains the function to perform after analysis.
+    Specifically, the functions with this files output csv files
+    that provide bridge structure numbers and attributes categorized
+    by classification done accordingly to Random forest and flow chart
 author: Akshay Kale
 """
 
@@ -25,6 +28,14 @@ def read_structure_numbers(csvfilename):
 
 
 def read_nbi_records(csvfilename):
+    """
+    descriptions:
+            Add custom attributes here
+    args:
+            csvfilename:(string):
+    returns:
+            listOfRecords:(list-namedTuple):
+    """
     listOfRecords = list()
     with open(csvfilename, 'r') as csvfile:
         csvReader = csv.reader(csvfile, delimiter=',')
@@ -155,5 +166,3 @@ def main():
 
 if __name__== "__main__":
     main()
-
-

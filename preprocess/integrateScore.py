@@ -1,6 +1,8 @@
 """
 description: This file contains functions that integrate
-bridge scores to NDOT identified maintenance bridges
+bridge scores to NDOT identified maintenance bridges.
+
+This script is part of the validation process of the script.
 
 author: Akshay Kale
 """
@@ -17,11 +19,11 @@ __copyright__='GPL'
 def read_csv(path, csvfile):
     """
     description:
-        Something
+        Returns a list of records in the csvfile.
 
     args:
-        path (string):
-        csvfile (string):
+        path (string): path of the csvfile
+        csvfile (string): name of the csvfile
 
     returns: listOfRecords (namedtuple): listOfRecords
     """
@@ -43,8 +45,13 @@ def read_csv(path, csvfile):
 def to_csv(listOfNewRecords, csvfile, fieldnames):
     """
     description:
+        Saves a output into a csvfile.
     args:
+        listOfNewRecords:(list): NBI Records
+        csvfile:(string): name of the csvfile
+        fieldnames:(list): list of the header files
     returns:
+        status:(Bool): status of the process of saving files
     """
     with open(csvfile, 'w') as csvFile:
         csvWriter = csv.writer(csvFile, delimiter=',')
@@ -57,6 +64,8 @@ def to_csv(listOfNewRecords, csvfile, fieldnames):
 def calc_bds_cat(newRecords):
     """
     description: calculate baseline difference category
+    args:
+        newRecords:(list):
     args:
     returns:
     """
