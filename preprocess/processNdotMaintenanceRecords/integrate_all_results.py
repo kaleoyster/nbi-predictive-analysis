@@ -27,6 +27,11 @@ def read_csv(csvfile):
         read interventionNDOT.csv file and create a dictionary
         then read all bridge and fill allbridge.csv according to interventionNDOT.csv
 
+    Args:
+        csvfile (string): filename or path of the file
+
+    Returns:
+        listOfProjects (list): list of the projects (list)
     """
     listOfProjects = list()
     with open(csvfile) as csvFile:
@@ -39,8 +44,14 @@ def read_csv(csvfile):
 def create_dict(listOfProjects):
     """
     Description:
-        creating
+        returns a dictionary of the structure number (key): intervention
 
+    Args:
+        listOfProject (list): filename or path of the file
+
+    Returns:
+        dictionary (dict): A dictionary of
+        structure number (key): intervention NDOT (value)
     """
     dictionary = defaultdict()
     for row in listOfProjects:
@@ -48,15 +59,22 @@ def create_dict(listOfProjects):
         year = row[1]
         intervention = row[2]
         dictionary[structureNumber] = intervention
-
     return dictionary
+
 
 def add_NDOT_intervention(listOfInterventions, dictionary):
     """
     Description:
-        creating
+        returns a list of list with N
 
+    Args:
+        listOfInterventions (list): list of interventions recorded in NDOT
+        dictionary (dictionary): filename or path of the file
+
+    Returns:
+        listOfList (list): returns a list of all bridges with intervention coding
     """
+
     counterYes = 0
     counterNo = 0
     listOfLists = list()
@@ -69,15 +87,13 @@ def add_NDOT_intervention(listOfInterventions, dictionary):
             else:
                 ndot = 'No'
             if row[1] == ndot:
-                #print(row, ndot)
                 counterYes = counterYes + 1
             else:
                 counterNo = counterNo + 1
-
         row.append(ndot)
         listOfLists.append(row)
-    print(counterNo, counterYes)
     return listOfLists
+
 
 def to_csv(listOfRecords, csvfile, fieldnames):
     """
@@ -102,8 +118,9 @@ def to_csv(listOfRecords, csvfile, fieldnames):
 
 def main():
     path = '/Users/AkshayKale/Documents/github/data/nbi'
+
     allbridgeFile = 'allBridgesCopy.csv'
-    interventionNDOTFile = 'interventionNDOT.csv'
+    interventionNDOTFile = 'resultInterventionNDOT.csv'
 
     listOfProjects = read_csv(interventionNDOTFile)
     NDOTDict = create_dict(listOfProjects)
@@ -112,8 +129,8 @@ def main():
     listOfRecords = add_NDOT_intervention(listOfInterventions, NDOTDict)
     fieldnames = ['structureNumber', 'flowChartResult', 'randomForest', 'NDOTResult']
 
-    csvfilename = 'resultsFlRfNDOT.csv'
-    to_csv(listOfRecords, csvfilename, fieldnames)
+    outputCsvfilename = 'resultsFlRfNDOT.csv'
+    to_csv(listOfRecords, outputCsvfilename, fieldnames)
 
 
 if __name__=='__main__':
