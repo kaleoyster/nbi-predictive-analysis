@@ -117,9 +117,11 @@ def to_csv(listOfRecords, csvfile, fieldnames):
 
 
 def main():
-    path = '/Users/AkshayKale/Documents/github/data/nbi'
+    path = '/Users/AkshayKale/Documents/github/data/nbi/'
 
-    allbridgeFile = 'allBridgesCopy.csv'
+    allbridgeFile = 'allBridges.csv'
+
+    allbridgeFile = path + allbridgeFile
     interventionNDOTFile = 'resultInterventionNDOT.csv'
 
     listOfProjects = read_csv(interventionNDOTFile)

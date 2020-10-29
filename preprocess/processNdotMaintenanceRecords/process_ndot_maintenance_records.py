@@ -35,6 +35,8 @@ def read_workbook(workbookName, worksheetName):
     Returns:
         creates a worksheet (CSV file object)
     """
+    path = '/Users/AkshayKale/Documents/github/data/nbi/'
+    workbookName = path + workbookName
     csvFileName = worksheetName + '.csv'
     xlsFile = pd.read_excel(workbookName, worksheetName, index_col=None)
     xlsFile.to_csv(csvFileName)
@@ -179,6 +181,7 @@ def main():
     workbookName = "Bridge Projects and History for UNL.xlsx"
     #worksheetName = "Hist of Bridges by SN"
     worksheetName = "ProjectData"
+
     read_workbook(workbookName, worksheetName)
 
     # Read CSV File
@@ -187,10 +190,10 @@ def main():
     endYear = 2018
     listOfProjects = read_csv(csvFileName)
 
-    # Save CSV File
+    # Save CSV FileCopy
     listOfRecords = get_bridges(listOfProjects, startYear, endYear)
 
-    newCsvFile ='resultInterventionNODT.csv'
+    newCsvFile ='resultInterventionNDOT.csv'
     fieldnames = ['structureNumber', 'intervention']
     to_csv(listOfRecords, newCsvFile, fieldnames)
 
