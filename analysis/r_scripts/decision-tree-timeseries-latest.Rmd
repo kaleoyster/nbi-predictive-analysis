@@ -12,9 +12,10 @@ library(MASS)
 library(caret)
 library(tidyverse)
 library(rpart)
-library(plyr); library(dplyr)
+library(plyr) 
+library(dplyr)
 library(caret)
-library(rattle)                 # Fancy tree plot
+library(rattle) # Fancy tree plot
 library(rpart.plot) 
 library(dplyr)
 library(parallel)
@@ -28,7 +29,7 @@ library(VIM)
 library(mice)
 
 # Reading the dataset
-nbi <- read.csv('/Users/AkshayKale/Documents/github/nbi-predictive-analysis/decision_tree.csv')
+nbi <- read.csv('decision_tree_new.csv')
 
 # Select attributes
 df <- nbi %>% select(adt.cat, adtt.cat, material, state, structure.number, structure.type, type.of.wearing.surface, current.deck, current.substructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention, deck.intervention.in.next.3.years, sub.intervention.in.next.3.years, super.intervention.in.next.3.years, precipitation, snowfall, freezethaw, score)
@@ -68,7 +69,7 @@ registerDoParallel(cl)
 reset.seed()
 model <- deck.intervention.in.next.3.years ~ adt.cat + adtt.cat + material + structure.type + type.of.wearing.surface + current.deck + current.substructure + current.superstructure + total.deck.intervention + total.sub.intervention + total.super.intervention +  precipitation + snowfall + freezethaw + score
 
-tunelengths = seq(from=5, to=100, by=5)
+tunelengths = seq(from=25, to=35, by=5)
 
 list_sens <- c()
 list_spec <- c()
@@ -82,7 +83,7 @@ for(tl in tunelengths) {
 rtree_model = train( model,
                  data = train.set,
                  method = "rpart",
-                 trControl = trainControl(method = "repeatedcv", search = 'random', repeats = 5,
+                   trControl = trainControl(method = "repeatedcv", search='random', repeats = 5,
                                           summaryFunction = twoClassSummary,
                                           classProbs = T, savePredictions = T),  tuneLength = tl,
                  metric='ROC')
@@ -136,9 +137,42 @@ names(df_metric) <- c('Sensitivity', 'Specificity', 'F1','Tunelength', 'Kappa', 
 
 df_metric
 ```
+
+```{r}
+ndotSet <- read.csv('decision_tree_testing.csv')
+# Select attributes
+#df_n <- ndotSet %>% select(adt.cat, adtt.cat, material, state, structure.number, structure.type, type.of.wearing.surface, current.deck, current.substructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention, deck.intervention.in.next.3.years, sub.intervention.in.next.3.years, super.intervention.in.next.3.years, precipitation, snowfall, freezethaw, score)
+
+# Select attributes
+df_deck_n <- ndotSet %>% select(adt.cat, structure.number, adtt.cat, material, structure.type, type.of.wearing.surface, current.deck, current.substructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention,  precipitation, snowfall, freezethaw, score, deck.intervention.in.next.3.years)
+
+# Remove null values
+ndotSet <- na.omit(df_deck_n)
+ndotSet
+## Predict on the training set
+tree_class_train <- rtree_model%>% predict(newdata = ndotSet, type = 'raw')
+tree_prob_train <- rtree_model%>% predict(newdata = ndotSet, type = 'prob')
+#zzzz
+## Confusion matrix
+area <- roc(ndotSet[[target_variable]], tree_prob_train[[positive_class]], plot = TRUE, print.auc = TRUE, legacy.axes = TRUE)
+list_auc <- c(list_auc, area$auc)
+tree_class_train
+list_auc
+```
+
+```{r}
+tree_prob_train
+```
+
+```{r}
+ndotSet$prediction <- tree_class_train
+ndotSetResults <- ndotSet %>% select(structure.number, deck.intervention.in.next.3.years, prediction)
+ndotSetResults
+##ndotSetResults
+which(ndotSetResults$deck.intervention.in.next.3.years == ndotSetResults$prediction)
+```
+
 ### Results of Decision tree without undersampling:
-  With respect to kappa value and AUC,
-  1. Decision tree with tunelength = , performs best
 
 # Decision Tree (Undersampling)
 ```{r}
@@ -176,7 +210,8 @@ reset.seed()
 
 model <- deck.intervention.in.next.3.years ~ adt.cat + adtt.cat + material + structure.type + type.of.wearing.surface + current.deck + current.substructure + current.superstructure + total.deck.intervention + total.sub.intervention + total.super.intervention +  precipitation + snowfall + freezethaw +  score
 
-tunelengths = c(4, 10, 15 , 20)
+#tunelengths = c(5, 10, 15 , 20)
+tunelengths = c(5, 10)
 
 list_sens <- c()
 list_spec <- c()
@@ -239,9 +274,7 @@ df_metric <- data.frame(list_sens, list_spec, list_f1, list_tl, list_kappa, list
 names(df_metric) <- c('Sensitivity', 'Specificity', 'f1','Tunelength', 'Kappa', 'AUC')
 
 df_metric
-
 ```
-
 
 ### Results Decision tree (Undersampling):
   With respect to kappa value and AUC,
