@@ -190,7 +190,7 @@ def main():
     endYear = 2018
     listOfProjects = read_csv(csvFileName)
 
-    # Save CSV FileCopy
+    # Save CSV File Copy
     listOfRecords = get_bridges(listOfProjects, startYear, endYear)
 
     newCsvFile ='resultInterventionNDOT.csv'
