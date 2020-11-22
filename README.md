@@ -7,14 +7,35 @@ The overall goal of this mini-project is to understand the influential factors t
 ## File structure:
     1. data_process 
         1. preprocess
+           The preprocess folder contains the files that clean and prepare dataset for the analysis.
+
             1. integrate.py
+
         2. post_analysis
-            1. flow.py
+
+            This folder contains files code that provides post analysis of the results from the analysis
+            1. flow.py: Evaluates the bridges with respect to the flowchart 
+
             2. after_analysis.py
+
             3. quick_analysis.py 
+
             4. validation.py
         
     2. analysis
+        R scripts that run models by taking into account the data prepared by the data processing scripts.
+
     3. notebook
 
+# Project execution flow:
 
+1. Prepare dataset (contains cleaning and preprocessing dataset) -> decision_tree_training.csv, decision_tree_testing.csv ->  assumed repair and reconstruction
+2. run r scripts 
+3. run post analysis scripts
+
+
+# Order of execution
+
+## processNdotMaintenanceRecords
+    1. process_ndot_maintenance_records
+    2.  integrate_all_results
