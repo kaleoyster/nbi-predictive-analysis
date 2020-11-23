@@ -17,6 +17,8 @@ import pandas as pd
 import datetime as dt
 from collections import namedtuple
 from collections import defaultdict
+from collections import Counter
+import matplotlib.pyplot as plt
 
 __author__= 'Akshay Kale'
 __copyright__= 'GPL'
@@ -41,6 +43,86 @@ def read_workbook(workbookName, worksheetName):
     xlsFile = pd.read_excel(workbookName, worksheetName, index_col=None)
     xlsFile.to_csv(csvFileName)
 
+def read_history(workbookName, worksheetName):
+    """
+    Description: Reads xls files and returns sheet
+
+    Args:
+        workbookName (string): xls filename
+        worksheetname (string): worksheet filename
+
+    Returns:
+        creates a worksheet (CSV file object)
+    """
+    path = '/Users/AkshayKale/Documents/github/data/nbi/'
+    workbookName = path + workbookName
+    csvFileName = worksheetName + '.csv'
+    xlsFile = pd.read_excel(workbookName, worksheetName, index_col=None)
+    xlsFile.to_csv(csvFileName)
+
+def process_history(listOfBridges):
+    """
+    Descriptions: create a list with the format structure number, year, intervention type
+
+    Args:
+        listOfBridges (named tuple): list of intervention histroy of the bridge bridges
+
+    Returns:
+        listOfBridgesIntervention (list): returns a list of list
+    """
+
+    structureNumber = list()
+    structureYear = defaultdict(list)
+    for namedTuple in listOfBridges:
+        namedTuple = namedTuple._asdict()
+        tempList = list()
+        attribute = ""
+        for keyValue in namedTuple.items():
+            # if any of the attributes are Y then print the attribute 
+            # ['structureNumber', 'year', 'designClass', 'bridgePrjToPrj', 'cntrlSeq', 'intervention']
+            if keyValue[1] == 'Y':
+                attribute =  keyValue[0]
+
+        tempList = [namedTuple['id1'],
+                    namedTuple['BIR_PRJD_YEAR'],
+                    namedTuple['BIR_PRJD_DSGN_CLS'],
+                    namedTuple['BIR_PRJD_FORM_PRJ'],
+                    namedTuple['BIR_PRJD_RT_008A'],
+                    attribute]
+
+        structureNumber.append(namedTuple['id1'])
+        structNum = namedTuple['id1']
+        structureYear[structNum].append(namedTuple['BIR_PRJD_YEAR'])
+
+        # For all bridge gather all years and then with in that list look for bridges that 1992 and above.
+        # year.add(namedTuple['BIR_PRJD_YEAR'])
+
+    #print(structureYear)
+
+    tempYear = []
+    for years in structureYear.values():
+        tempyr = []
+        for year in years:
+            if year != '':
+                year = int(float(year))
+                if year >= 1992:
+                    tempyr.append(year)
+        tempYear.append(tempyr)
+
+    lenYears = list()
+    for years in tempYear:
+        lenYears.append(len(years))
+
+    print(Counter(lenYears))
+    tempCounter = [length for length in Counter(structureNumber).values()]
+    lenCounter = Counter(tempCounter)
+    print(lenCounter)
+    plt.title("Summary bar chart")
+    plt.bar(range(len(lenCounter)), list(lenCounter.values()), align='center')
+    plt.xticks(range(len(lenCounter)), list(lenCounter.keys()))
+    plt.xlabel('Number of records per length')
+    plt.ylabel('Length of bridge records')
+    plt.show()
 
 def read_csv(csvFileName):
     """
@@ -67,6 +149,7 @@ def read_csv(csvFileName):
         Record = namedtuple('Record', header)
         for row in csvReader:
             if row[-1] != '':
+                #print(row[-1])
                 record = Record(*row)
                 listOfProjects.append(record)
     return listOfProjects
@@ -181,21 +264,28 @@ def main():
     workbookName = "Bridge Projects and History for UNL.xlsx"
     #worksheetName = "Hist of Bridges by SN"
     worksheetName = "ProjectData"
+    historyWorksheet = 'HistData'
 
     read_workbook(workbookName, worksheetName)
+    read_history(workbookName, historyWorksheet)
 
     # Read CSV File
-    csvFileName = worksheetName + '.csv'
-    startYear = 2015
-    endYear = 2018
-    listOfProjects = read_csv(csvFileName)
+    #csvFileName = worksheetName + '.csv'
+    historyCsvFileName = historyWorksheet + '.csv'
 
-    # Save CSV File Copy
-    listOfRecords = get_bridges(listOfProjects, startYear, endYear)
+    #startYear = 2015
+    #endYear = 2018
+    #listOfProjects = read_csv(csvFileName)
 
-    newCsvFile ='resultInterventionNDOT.csv'
-    fieldnames = ['structureNumber', 'intervention']
-    to_csv(listOfRecords, newCsvFile, fieldnames)
+    listOfBridges = read_csv(historyCsvFileName)
+    print(process_history(listOfBridges))
+
+    ## Save CSV File Copy
+    #listOfRecords = get_bridges(listOfProjects, startYear, endYear)
+
+    #newCsvFile ='resultInterventionNDOT.csv'
+    #fieldnames = ['structureNumber', 'intervention']
+    #to_csv(listOfRecords, newCsvFile, fieldnames)
 
 
 if __name__ =='__main__':

@@ -49,9 +49,10 @@ def extract_structure_numbers(ndotListOfLists):
     return listOfStructureNumbers
 
 
-def split_dataset(ndotListOfLists, nbiListOfLists):
+def intergrate_split_dataset(ndotListOfLists, nbiListOfLists):
     """
     Description:  splits data set into training and testing dataset with testing dataset as nbiListOFLists
+    Also, integrates the ndot data with the nbi dataset
     Args:
         ndotListOfLists (list): list of bridges from NDOT repair and reconstruction
         nbiListOfLists (list): list of bridges from NBI data
@@ -139,7 +140,7 @@ def main():
 
     ndotListOfLists, ndotHeader  = read_csv(ndotFile)
     nbiListOfLists, nbiHeader = read_csv(datasetFile)
-    trainingSet, testingSet = split_dataset(ndotListOfLists, nbiListOfLists)
+    trainingSet, testingSet = intergrate_split_dataset(ndotListOfLists, nbiListOfLists)
 
     lengthTraining = len(trainingSet)
     lengthTesting = len(testingSet)
