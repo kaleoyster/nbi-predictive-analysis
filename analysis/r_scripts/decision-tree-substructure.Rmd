@@ -1,11 +1,12 @@
 ---
 title: "R Notebook"
-output: html_notebook
-author?: Akshay Kale
+Author: Akshay Kale
+output: pdf_document
+description: 
+  Decision tree for modeling substructure
 ---
 
 # Modeling Subtructure 
-## Importing Libraries 
 ```{r}
 library(lattice)
 library(ISLR)
@@ -13,28 +14,30 @@ library(MASS)
 library(caret)
 library(tidyverse)
 library(rpart)
-library(plyr); library(dplyr)
+library(plyr)
+library(dplyr)
 library(caret)
 library(rattle)                 # Fancy tree plot
 library(rpart.plot) 
 library(dplyr)
 library(parallel)
 
-library(Hmisc)
+#library(Hmisc)
 library(e1071)
 library(pROC)
 library(ggplot2)
 library(rpart.plot)
 library(VIM)
 library(mice)
+
 # Reading the dataset
-nbi <- read.csv('/Users/AkshayKale/Documents/github/nbi-predictive-analysis/decision_tree.csv')
+#nbi <- read.csv('/Users/AkshayKale/Documents/github/nbi-predictive-analysis/decision_tree.csv')
 
 # Select attributes
-df_sub <- df %>% select(adt.cat, adtt.cat, material, structure.type, type.of.wearing.surface, current.deck, current.substructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention,  precipitation, snowfall, freezethaw, score, sub.intervention.in.next.3.years)
+#df_sub <- df %>% select(adt.cat, adtt.cat, material, structure.type, type.of.wearing.surface, current.deck, current.substructure, current.superstructure, total.deck.intervention, total.sub.intervention, total.super.intervention,  precipitation, snowfall, freezethaw, score, sub.intervention.in.next.3.years)
 
 # Remove null values
-df_sub <- na.omit(df_sub)
+#df_sub <- na.omit(df_sub)
 ```
 
 # Training and testing Decision Tree
