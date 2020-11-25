@@ -79,7 +79,7 @@ def intergrate_split_dataset(ndotListOfLists, nbiListOfLists):
             trainingSet.append(row)
     return trainingSet, testingSet
 
-def prepare_dataset(ndotListOfLists, nbiListOfLists, states='ALL'):
+def prepare_dataset(ndotListOfLists, nbiListOfLists):
     """
     Description: prepares a training testing dataset by combining two datasets
     Args:
@@ -89,13 +89,27 @@ def prepare_dataset(ndotListOfLists, nbiListOfLists, states='ALL'):
         listOfJoinedDataset (list): returns a list of records
     """
     joinedDataset = list()
-    ndotSet = extract_structure_numbers(ndotListOfLists)
-    print(len(ndotSet))
-    print(ndotSet)
+
+    # Create a dicitionary for nbi 'structure number' and 'nbi data'
+    nbiDict = defaultdict(list)
     for row in nbiListOfLists:
-        structureNumber = row[14]
-        if structureNumber in ndotSet.keys():
-           joinedDataset.append(row)
+        nbiDict[row[14]].append(row)
+
+    # Create a dicitionary for nbi 'structure number' and 'ndot data'
+    setList = defaultdict()
+    for row in ndotListOfLists:
+        structNum = row[0]
+        intervention = row[1]
+        setList[structNum] = intervention
+
+    # Create a list of nbi data from ndot data
+    for structNum in setList.keys():
+        intervention = setList.get(structNum)
+        nbiData = nbiDict.get(structNum)
+        if nbiData != None:
+            nbiData =  nbiData[0]
+            nbiData.append(intervention)
+            joinedDataset.append(nbiData)
     return joinedDataset
 
 
@@ -165,9 +179,16 @@ def main():
     # Step 2: prepare files 
     joinedDataset = prepare_dataset(ndotListOfLists, nbiListOfLists)
 
-    ndotListOfLists, ndotHeader  = read_csv(ndotFile)
-    nbiListOfLists, nbiHeader = read_csv(datasetFile)
-    trainingSet, testingSet = intergrate_split_dataset(ndotListOfLists, nbiListOfLists)
+    # Step 3: Export a CSV file
+    csvfilename = 'decision_tree_nebraska.csv'
+    nbiHeader.append('NdotIntervention')
+    to_csv(joinedDataset, csvfilename, nbiHeader)
+
+
+    ### flow for nbi all states data ###
+
+    #print(ndotListOfLists)
+    #trainingSet, testingSet = intergrate_split_dataset(ndotListOfLists, nbiListOfLists)
 
     #lengthTraining = len(trainingSet)
     #lengthTesting = len(testingSet)
