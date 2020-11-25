@@ -20,6 +20,7 @@ from collections import defaultdict
 from collections import Counter
 import matplotlib.pyplot as plt
 
+
 __author__= 'Akshay Kale'
 __copyright__= 'GPL'
 __credit__= []
@@ -52,32 +53,65 @@ def read_history(workbookName, worksheetName):
     Returns:
         creates a worksheet (CSV file object)
     """
-    path = '/Users/AkshayKale/Documents/github/data/nbi/'
+    path = '../../../data/nbi/'
     workbookName = path + workbookName
     csvFileName = worksheetName + '.csv'
     xlsFile = pd.read_excel(workbookName, worksheetName, index_col=None)
     xlsFile.to_csv(csvFileName)
 
-def process_history(listOfBridges):
+
+def process_interventions(listOfLoseBridgeRecords):
     """
-    Descriptions: create a list with the format structure number, year, intervention type
+    Description:
+        Processes the list of lose records into a time-series format
+        using dictionary
 
     Args:
-        listOfBridges (named tuple): list of intervention histroy of the bridge bridges
+        listOfLoseBridgeRecord (list)
+    Returns:
+        listOfRecords (list): The list will contain structure number and intervention
+    """
+    listOfRecords = list()
+    structureNumberInterventionDict = defaultdict(list)
+
+    # Create dictionaray of structure number and intervention
+    for record in listOfLoseBridgeRecords:
+        structureNumber = record[0]
+        year = int(float(record[1]))
+        intervention = record[-1]
+        if year >= 1992:
+            structureNumberInterventionDict[structureNumber].append(intervention)
+
+    # Create list of structure number
+    for record in listOfLoseBridgeRecords:
+        structureNumber = record[0]
+        if structureNumber in structureNumberInterventionDict.keys():
+            listOfRecords.append([structureNumber, 'Yes'])
+        else:
+            listOfRecords.append([structureNumber, 'No'])
+    return listOfRecords
+
+
+def process_history(listOfBridges):
+    """
+    Description:
+        Returns a list of bridges with the format structure number, year, and intervention type
+
+    Args:
+        listOfBridges (named tuple): list of intervention histroy of the bridges
 
     Returns:
-        listOfBridgesIntervention (list): returns a list of list
+        listOfBridgesIntervention (list): returns a list of lists with intervention
     """
-
     structureNumber = list()
     structureYear = defaultdict(list)
+    listOfLoseBridgeRecords = list()
     for namedTuple in listOfBridges:
         namedTuple = namedTuple._asdict()
         tempList = list()
         attribute = ""
         for keyValue in namedTuple.items():
-            # if any of the attributes are Y then print the attribute 
-            # ['structureNumber', 'year', 'designClass', 'bridgePrjToPrj', 'cntrlSeq', 'intervention']
+            # header = ['structureNumber', 'year', 'designClass', 'bridgePrjToPrj', 'cntrlSeq', 'intervention']
             if keyValue[1] == 'Y':
                 attribute =  keyValue[0]
 
@@ -88,39 +122,10 @@ def process_history(listOfBridges):
                     namedTuple['BIR_PRJD_RT_008A'],
                     attribute]
 
-        structureNumber.append(namedTuple['id1'])
-        structNum = namedTuple['id1']
-        structureYear[structNum].append(namedTuple['BIR_PRJD_YEAR'])
+        listOfLoseBridgeRecords.append(tempList)
+    listOfBridges = process_interventions(listOfLoseBridgeRecords)
+    return listOfBridges
 
-        # For all bridge gather all years and then with in that list look for bridges that 1992 and above.
-        # year.add(namedTuple['BIR_PRJD_YEAR'])
-
-    #print(structureYear)
-
-    tempYear = []
-    for years in structureYear.values():
-        tempyr = []
-        for year in years:
-            if year != '':
-                year = int(float(year))
-                if year >= 1992:
-                    tempyr.append(year)
-        tempYear.append(tempyr)
-
-    lenYears = list()
-    for years in tempYear:
-        lenYears.append(len(years))
-
-    print(Counter(lenYears))
-    tempCounter = [length for length in Counter(structureNumber).values()]
-    lenCounter = Counter(tempCounter)
-    print(lenCounter)
-    plt.title("Summary bar chart")
-    plt.bar(range(len(lenCounter)), list(lenCounter.values()), align='center')
-    plt.xticks(range(len(lenCounter)), list(lenCounter.keys()))
-    plt.xlabel('Number of records per length')
-    plt.ylabel('Length of bridge records')
-    plt.show()
 
 def read_csv(csvFileName):
     """
@@ -147,7 +152,6 @@ def read_csv(csvFileName):
         Record = namedtuple('Record', header)
         for row in csvReader:
             if row[-1] != '':
-                #print(row[-1])
                 record = Record(*row)
                 listOfProjects.append(record)
     return listOfProjects
@@ -230,6 +234,7 @@ def get_bridges(listOfProjects, startYear, endYear):
     """
     Description:
         Returns a list of the Project between years provided
+        alternative function to get_bridges_hist
 
     Args:
         listOfProject (list): list of the named tuples that include
@@ -258,7 +263,6 @@ def main():
     """
     # Read xls file and create CSV file of the spreadsheet
     workbookName = "Bridge Projects and History for UNL.xlsx"
-    #worksheetName = "Hist of Bridges by SN"
     worksheetName = "ProjectData"
     historyWorksheet = 'HistData'
 
@@ -266,23 +270,16 @@ def main():
     read_history(workbookName, historyWorksheet)
 
     # Read CSV File
-    #csvFileName = worksheetName + '.csv'
     historyCsvFileName = historyWorksheet + '.csv'
-
-    #startYear = 2015
-    #endYear = 2018
-    #listOfProjects = read_csv(csvFileName)
-
     listOfBridges = read_csv(historyCsvFileName)
-    print(process_history(listOfBridges))
+    listOfBridges = process_history(listOfBridges)
 
     ## Save CSV File Copy
     #listOfRecords = get_bridges(listOfProjects, startYear, endYear)
 
-    #newCsvFile ='resultInterventionNDOT.csv'
-    #fieldnames = ['structureNumber', 'intervention']
-    #to_csv(listOfRecords, newCsvFile, fieldnames)
-
+    newCsvFile ='resultInterventionNDOT.csv'
+    fieldnames = ['structureNumber', 'intervention']
+    to_csv(listOfBridges, newCsvFile, fieldnames)
 
 if __name__ =='__main__':
     main()
