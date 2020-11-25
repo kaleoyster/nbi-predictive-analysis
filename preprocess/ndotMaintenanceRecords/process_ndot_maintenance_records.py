@@ -25,11 +25,9 @@ __copyright__= 'GPL'
 __credit__= []
 __email__='akale@unomaha.edu'
 
-
 def read_workbook(workbookName, worksheetName):
     """
     Description: Reads xls files and returns sheet
-
     Args:
         workbookName (string): xls filename
         worksheetname (string): worksheet filename
@@ -37,7 +35,7 @@ def read_workbook(workbookName, worksheetName):
     Returns:
         creates a worksheet (CSV file object)
     """
-    path = '/Users/AkshayKale/Documents/github/data/nbi/'
+    path = '../../../data/nbi/'
     workbookName = path + workbookName
     csvFileName = worksheetName + '.csv'
     xlsFile = pd.read_excel(workbookName, worksheetName, index_col=None)
@@ -253,8 +251,6 @@ def get_bridges(listOfProjects, startYear, endYear):
             bridgeRec = [structureNumber, year, action]
             bridgeInterventionList.append(bridgeRec)
     return bridgeInterventionList
-
-
 
 def main():
     """
